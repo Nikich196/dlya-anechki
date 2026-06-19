@@ -1,4 +1,4 @@
-const CACHE = 'anechka-v4';
+const CACHE = 'anechka-v5';
 const ASSETS = [
   './',
   './index.html',

@@ -268,30 +268,58 @@ main{flex:1; overflow-y:auto; overscroll-behavior:contain; padding:6px 14px 24px
 /* ---------- block blast ---------- */
 #blastBoard{
   display:grid; grid-template-columns:repeat(8,1fr); gap:4px;
-  background:#ffd1e0; border-radius:16px; padding:6px; aspect-ratio:1/1;
-  user-select:none; touch-action:manipulation;
+  background:linear-gradient(145deg,#ffdcea,#ffbfd9);
+  border-radius:18px; padding:7px; aspect-ratio:1/1;
+  user-select:none; touch-action:none; box-shadow:var(--shadow);
 }
 #blastBoard .bcell{
-  background:#ffe6ef; border-radius:7px; transition:background .12s ease, transform .12s ease;
+  background:rgba(255,255,255,.42); border-radius:8px;
+  transition:transform .12s ease;
 }
-#blastBoard .bcell.filled{box-shadow:inset 0 -3px 5px rgba(0,0,0,.12);}
-#blastBoard .bcell.preview{background:#ffc0d6 !important; transform:scale(.9);}
-#blastBoard .bcell.bad{background:#e7c4d2 !important;}
-#blastBoard .bcell.clearing{animation:bclear .35s ease forwards;}
-@keyframes bclear{0%{transform:scale(1);} 45%{transform:scale(1.25); filter:brightness(1.5);} 100%{transform:scale(0); opacity:0;}}
+#blastBoard .bcell.filled{
+  box-shadow:inset 0 -3px 6px rgba(150,20,70,.28), inset 0 2px 4px rgba(255,255,255,.55);
+}
+#blastBoard .bcell.placed{animation:bplace .3s cubic-bezier(.34,1.56,.64,1);}
+@keyframes bplace{0%{transform:scale(.35);} 100%{transform:scale(1);}}
+#blastBoard .bcell.preview{box-shadow:inset 0 0 0 3px rgba(255,255,255,.9); transform:scale(.94);}
+#blastBoard .bcell.bad{background:rgba(150,40,70,.4) !important;}
+#blastBoard .bcell.clearing{animation:bclear .45s cubic-bezier(.4,0,.2,1) forwards; z-index:2;}
+@keyframes bclear{
+  0%{transform:scale(1); filter:brightness(1);}
+  30%{transform:scale(1.22); filter:brightness(1.9) saturate(1.5);}
+  55%{transform:scale(1.22); filter:brightness(1.9);}
+  100%{transform:scale(0) rotate(22deg); opacity:0;}
+}
 #blastTray{
-  display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:14px;
-  min-height:90px;
+  display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:16px;
+  min-height:96px;
 }
 .tray-piece{
   background:var(--card); border-radius:16px; box-shadow:var(--shadow);
   display:flex; align-items:center; justify-content:center; padding:10px;
-  cursor:pointer; min-height:84px; transition:transform .12s ease, box-shadow .12s ease;
+  cursor:grab; min-height:88px; touch-action:none;
+  transition:transform .12s ease, box-shadow .12s ease, opacity .25s ease;
 }
-.tray-piece.sel{transform:scale(1.06); box-shadow:0 0 0 3px var(--accent), var(--shadow);}
-.tray-piece.used{opacity:0; pointer-events:none;}
-.tray-piece .pgrid{display:grid; gap:3px;}
-.tray-piece .pg{width:15px; height:15px; border-radius:4px;}
+.tray-piece:active{cursor:grabbing;}
+.tray-piece.dragging{opacity:.3; transform:scale(.9);}
+.tray-piece.used{opacity:0; pointer-events:none; transform:scale(.5);}
+.tray-piece .pgrid{display:grid; gap:4px;}
+.tray-piece .pg{
+  width:17px; height:17px; border-radius:5px;
+  box-shadow:inset 0 -2px 3px rgba(150,20,70,.25), inset 0 2px 3px rgba(255,255,255,.5);
+}
+.blast-ghost{
+  position:fixed; display:grid; pointer-events:none; z-index:90; left:0; top:0;
+  opacity:.95; filter:drop-shadow(0 10px 12px rgba(210,51,105,.45));
+}
+.blast-ghost .gcell{
+  border-radius:8px;
+  box-shadow:inset 0 -3px 6px rgba(150,20,70,.28), inset 0 2px 4px rgba(255,255,255,.55);
+}
+.blast-pop{
+  position:fixed; z-index:85; pointer-events:none; font-weight:800; color:#fff;
+  font-size:22px; text-shadow:0 2px 8px rgba(210,51,105,.7); animation:ptsUp .8s ease-out forwards;
+}
 
 /* ---------- tetris ---------- */
 #tetrisCanvas{
@@ -586,7 +614,7 @@ main{flex:1; overflow-y:auto; overscroll-behavior:contain; padding:6px 14px 24px
       <div id="blastTray"></div>
       <div class="btnrow"><button class="btn ghost" id="blastNew">↺ Заново</button></div>
       <p style="text-align:center; color:var(--muted); font-size:13px; margin-top:8px;">
-        Нажми фигурку, потом клетку на поле. Собери ряд или столбик — он лопнет! 💥
+        Перетащи фигурку пальцем на поле. Собери ряд или столбик — он лопнет! 💥
       </p>
     </section>
 
@@ -1926,8 +1954,20 @@ const Blast = (() => {
     [[0,0],[0,1],[1,1],[1,2]],
     [[0,1],[0,2],[1,0],[1,1]]
   ];
-  const COLORS = ['#ff7ba4','#ff5c8a','#f2417c','#e0306e','#ff9ebd','#d6488f','#ff6d9b'];
-  let grid, cells = [], score, pieces, selected, boardEl, trayEl;
+  /* розовые/сиреневые/коралловые градиенты — разные цвета фигурок */
+  const PALETTE = [
+    ['#ffb3d2','#ff5c8a'],
+    ['#ff9dc2','#e0306e'],
+    ['#ffc4dd','#f2417c'],
+    ['#dcb3ff','#a855f7'],
+    ['#c7b0ff','#8b5cf6'],
+    ['#ffc9b0','#ff7a59'],
+    ['#ffd1e6','#ff6d9b']
+  ];
+  let grid, cells = [], score, pieces, boardEl, trayEl;
+  let drag = null, anchorIdx = -1;
+
+  function grad(p){ return 'linear-gradient(160deg,' + p[0] + ',' + p[1] + ')'; }
 
   function init(){
     boardEl = $('#blastBoard');
@@ -1936,52 +1976,108 @@ const Blast = (() => {
       const d = document.createElement('div');
       d.className = 'bcell';
       d.dataset.idx = i;
-      d.addEventListener('click', () => place(i));
-      d.addEventListener('pointerenter', () => hover(i));
       boardEl.appendChild(d);
       cells.push(d);
     }
-    boardEl.addEventListener('pointerleave', clearPreview);
     $('#blastNew').addEventListener('click', newGame);
     $('#blastBest').textContent = store.get('bestBlast', 0);
   }
   function enter(){ if(!grid) newGame(); }
   function newGame(){
     grid = Array(N*N).fill(null);
-    score = 0; selected = -1;
+    score = 0;
     $('#blastScore').textContent = '0';
     deal();
     render();
   }
   function deal(){
-    pieces = [0,1,2].map(() => {
-      const shape = SHAPES[Math.floor(Math.random()*SHAPES.length)];
-      return {shape, color: COLORS[Math.floor(Math.random()*COLORS.length)], used:false};
-    });
-    selected = -1;
+    pieces = [0,1,2].map(() => ({
+      shape: SHAPES[Math.floor(Math.random()*SHAPES.length)],
+      colorIdx: Math.floor(Math.random()*PALETTE.length),
+      used: false
+    }));
     renderTray();
   }
   function renderTray(){
     trayEl.innerHTML = '';
     pieces.forEach((p, i) => {
       const wrap = document.createElement('div');
-      wrap.className = 'tray-piece' + (p.used ? ' used' : '') + (selected === i ? ' sel' : '');
+      wrap.className = 'tray-piece' + (p.used ? ' used' : '');
       const maxR = Math.max(...p.shape.map(c => c[0])) + 1;
       const maxC = Math.max(...p.shape.map(c => c[1])) + 1;
       const g = document.createElement('div');
       g.className = 'pgrid';
-      g.style.gridTemplateColumns = 'repeat(' + maxC + ',15px)';
-      g.style.gridTemplateRows = 'repeat(' + maxR + ',15px)';
+      g.style.gridTemplateColumns = 'repeat(' + maxC + ',17px)';
+      g.style.gridTemplateRows = 'repeat(' + maxR + ',17px)';
       const set = new Set(p.shape.map(c => c[0]+'_'+c[1]));
       for(let r=0;r<maxR;r++) for(let c=0;c<maxC;c++){
         const cell = document.createElement('div');
-        if(set.has(r+'_'+c)){ cell.className = 'pg'; cell.style.background = p.color; }
+        if(set.has(r+'_'+c)){ cell.className = 'pg'; cell.style.background = grad(PALETTE[p.colorIdx]); }
         g.appendChild(cell);
       }
       wrap.appendChild(g);
-      if(!p.used) wrap.addEventListener('click', () => { selected = i; renderTray(); });
+      if(!p.used) wrap.addEventListener('pointerdown', e => startDrag(e, i, wrap));
       trayEl.appendChild(wrap);
     });
+  }
+  /* ---- перетаскивание ---- */
+  function startDrag(e, i, wrap){
+    if(drag || pieces[i].used) return;
+    e.preventDefault();
+    const p = pieces[i];
+    const cs = cells[0].getBoundingClientRect().width, gap = 4;
+    const maxR = Math.max(...p.shape.map(c => c[0])) + 1;
+    const maxC = Math.max(...p.shape.map(c => c[1])) + 1;
+    const ghost = document.createElement('div');
+    ghost.className = 'blast-ghost';
+    ghost.style.gridTemplateColumns = 'repeat(' + maxC + ',' + cs + 'px)';
+    ghost.style.gridAutoRows = cs + 'px';
+    ghost.style.gap = gap + 'px';
+    const set = new Set(p.shape.map(c => c[0]+'_'+c[1]));
+    for(let r=0;r<maxR;r++) for(let c=0;c<maxC;c++){
+      const cell = document.createElement('div');
+      if(set.has(r+'_'+c)){ cell.className = 'gcell'; cell.style.background = grad(PALETTE[p.colorIdx]); }
+      else cell.style.visibility = 'hidden';
+      ghost.appendChild(cell);
+    }
+    document.body.appendChild(ghost);
+    wrap.classList.add('dragging');
+    drag = { i, shape:p.shape, ghost, cs, wrap,
+      w: maxC*cs + (maxC-1)*gap, h: maxR*cs + (maxR-1)*gap, ax:0, ay:0 };
+    moveGhost(e.clientX, e.clientY);
+    window.addEventListener('pointermove', onMove, {passive:false});
+    window.addEventListener('pointerup', onUp);
+    window.addEventListener('pointercancel', onUp);
+    vibe(6);
+  }
+  function moveGhost(x, y){
+    const left = x - drag.w/2;
+    const top = y - drag.h - 16;     /* фигурка парит над пальцем */
+    drag.ghost.style.left = left + 'px';
+    drag.ghost.style.top = top + 'px';
+    drag.ax = left + drag.cs/2;       /* центр верхне-левой клетки фигурки */
+    drag.ay = top + drag.cs/2;
+  }
+  function onMove(e){
+    if(!drag) return;
+    e.preventDefault();
+    moveGhost(e.clientX, e.clientY);
+    const el = document.elementFromPoint(drag.ax, drag.ay);
+    anchorIdx = (el && el.classList && el.classList.contains('bcell')) ? +el.dataset.idx : -1;
+    if(anchorIdx >= 0) hover(anchorIdx); else clearPreview();
+  }
+  function onUp(){
+    if(!drag) return;
+    window.removeEventListener('pointermove', onMove);
+    window.removeEventListener('pointerup', onUp);
+    window.removeEventListener('pointercancel', onUp);
+    drag.ghost.remove();
+    drag.wrap.classList.remove('dragging');
+    const i = drag.i, idx = anchorIdx;
+    drag = null; anchorIdx = -1;
+    clearPreview();
+    if(idx >= 0 && canPlaceAt(pieces[i].shape, idx)) placePiece(i, idx);
+    else vibe(35);
   }
   function canPlaceAt(shape, idx){
     const br = Math.floor(idx/N), bc = idx%N;
@@ -1992,60 +2088,75 @@ const Blast = (() => {
   }
   function hover(idx){
     clearPreview();
-    if(selected < 0 || pieces[selected].used) return;
-    const shape = pieces[selected].shape;
-    const ok = canPlaceAt(shape, idx);
+    if(!drag) return;
+    const ok = canPlaceAt(drag.shape, idx);
     const br = Math.floor(idx/N), bc = idx%N;
-    shape.forEach(([r,c]) => {
+    const pair = PALETTE[pieces[drag.i].colorIdx];
+    drag.shape.forEach(([r,c]) => {
       const rr = br+r, cc = bc+c;
-      if(rr<N && cc<N) cells[rr*N+cc].classList.add(ok ? 'preview' : 'bad');
+      if(rr<N && cc<N){
+        const cell = cells[rr*N+cc];
+        if(ok){ cell.classList.add('preview'); cell.style.background = grad(pair); }
+        else cell.classList.add('bad');
+      }
     });
   }
   function clearPreview(){
-    cells.forEach(c => c.classList.remove('preview','bad'));
+    cells.forEach((c, i) => {
+      c.classList.remove('preview','bad');
+      if(grid && grid[i]) c.style.background = grad(grid[i]);
+      else c.style.background = '';
+    });
   }
-  function place(idx){
-    if(selected < 0 || pieces[selected].used) { toast('Сначала выбери фигурку ♥'); return; }
-    const p = pieces[selected];
-    if(!canPlaceAt(p.shape, idx)){ toast('Сюда не влезает 🙈'); return; }
+  function placePiece(i, idx){
+    const p = pieces[i];
     const br = Math.floor(idx/N), bc = idx%N;
-    p.shape.forEach(([r,c]) => { grid[(br+r)*N+(bc+c)] = p.color; });
+    const pair = PALETTE[p.colorIdx];
+    const placed = [];
+    p.shape.forEach(([r,c]) => { const ci = (br+r)*N + (bc+c); grid[ci] = pair; placed.push(ci); });
     p.used = true;
     score += p.shape.length;
-    vibe(10);
-    clearPreview();
+    vibe(12);
     render();
-    clearLines();
-    if(pieces.every(x => x.used)) deal();
-    renderTray();
-    $('#blastScore').textContent = score;
-    if(score > store.get('bestBlast', 0)){ store.set('bestBlast', score); }
-    $('#blastBest').textContent = store.get('bestBlast', 0);
-    checkDead();
+    placed.forEach(ci => { cells[ci].classList.add('placed'); setTimeout(() => cells[ci].classList.remove('placed'), 300); });
+    const cleared = clearLines();
+    if(pieces.every(x => x.used)) deal(); else renderTray();
+    updateScore();
+    if(!cleared) checkDead();
   }
   function clearLines(){
     const fullRows = [], fullCols = [];
     for(let r=0;r<N;r++){ let f=true; for(let c=0;c<N;c++) if(!grid[r*N+c]) f=false; if(f) fullRows.push(r); }
     for(let c=0;c<N;c++){ let f=true; for(let r=0;r<N;r++) if(!grid[r*N+c]) f=false; if(f) fullCols.push(c); }
-    if(!fullRows.length && !fullCols.length) return;
+    if(!fullRows.length && !fullCols.length) return false;
     const toClear = new Set();
     fullRows.forEach(r => { for(let c=0;c<N;c++) toClear.add(r*N+c); });
     fullCols.forEach(c => { for(let r=0;r<N;r++) toClear.add(r*N+c); });
-    toClear.forEach(i => cells[i].classList.add('clearing'));
-    const gained = (fullRows.length + fullCols.length) * 10 + toClear.size;
+    toClear.forEach(ci => cells[ci].classList.add('clearing'));
+    const lines = fullRows.length + fullCols.length;
+    const gained = lines*10 + toClear.size;
     score += gained;
     vibe([20,40,20]);
-    confetti(fullRows.length + fullCols.length >= 2 ? 18 : 8);
-    const earnedHearts = (fullRows.length + fullCols.length) * 2;
-    setTimeout(() => addHearts(earnedHearts, 'Линия!'), 200);
+    confetti(lines >= 2 ? 24 : 12);
+    const rect = boardEl.getBoundingClientRect();
+    spawnPop(rect.left + rect.width/2 - 24, rect.top + rect.height/2 - 12, '+' + gained + ' ♥');
+    setTimeout(() => addHearts(lines*2, lines >= 2 ? 'Комбо! 💥' : 'Линия! 💥'), 150);
     setTimeout(() => {
-      toClear.forEach(i => { grid[i] = null; });
-      cells.forEach(c => c.classList.remove('clearing'));
+      toClear.forEach(ci => { grid[ci] = null; cells[ci].classList.remove('clearing'); });
       render();
-      $('#blastScore').textContent = score;
-      if(score > store.get('bestBlast', 0)) store.set('bestBlast', score);
-      $('#blastBest').textContent = store.get('bestBlast', 0);
-    }, 360);
+      updateScore();
+      checkDead();
+    }, 460);
+    return true;
+  }
+  function spawnPop(x, y, text){
+    const d = document.createElement('div');
+    d.className = 'blast-pop';
+    d.textContent = text;
+    d.style.left = x + 'px';
+    d.style.top = y + 'px';
+    document.body.appendChild(d);
+    setTimeout(() => d.remove(), 800);
   }
   function checkDead(){
     const anyFit = pieces.some(p => {
@@ -2059,13 +2170,18 @@ const Blast = (() => {
         addHearts(bonus, 'За игру!');
         showModal('Поле забилось! 🧱', 'Твой счёт: ' + score + '\n\n' + lovePhrase(),
           [{label:'↺ Ещё раз', action:newGame}, {label:'В меню', ghost:true, action:()=>showScreen('menu')}]);
-      }, 450);
+      }, 500);
     }
+  }
+  function updateScore(){
+    $('#blastScore').textContent = score;
+    if(score > store.get('bestBlast', 0)) store.set('bestBlast', score);
+    $('#blastBest').textContent = store.get('bestBlast', 0);
   }
   function render(){
     for(let i=0;i<N*N;i++){
       const d = cells[i];
-      if(grid[i]){ d.classList.add('filled'); d.style.background = grid[i]; }
+      if(grid[i]){ d.classList.add('filled'); d.style.background = grad(grid[i]); }
       else { d.classList.remove('filled'); d.style.background = ''; }
     }
   }
