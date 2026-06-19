@@ -1,0 +1,2269 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover">
+<meta name="robots" content="noindex, nofollow">
+<meta name="theme-color" content="#ff5c8a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="Анечка ♥">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="icon" href="icon-192.png">
+<title>Для Анечки ♥</title>
+<style>
+:root{
+  --bg1:#fff5f8; --bg2:#ffdcea;
+  --accent:#ff5c8a; --accent-deep:#d23369;
+  --text:#4a2b3a; --muted:#a3778c;
+  --card:#ffffff; --shadow:0 6px 24px rgba(210,51,105,.13);
+  --radius:20px;
+}
+*{box-sizing:border-box; -webkit-tap-highlight-color:transparent;}
+html,body{height:100%; margin:0; overscroll-behavior:none;}
+body{
+  font-family:'Segoe UI', system-ui, -apple-system, sans-serif;
+  background:linear-gradient(160deg,var(--bg1),var(--bg2),#ffe9f0,var(--bg2));
+  background-size:300% 300%;
+  animation:bgshift 24s ease-in-out infinite alternate;
+  color:var(--text);
+  touch-action:manipulation;
+  position:fixed; inset:0; overflow:hidden;
+}
+@keyframes bgshift{0%{background-position:0% 0%;} 100%{background-position:100% 100%;}}
+#bg-hearts{position:fixed; inset:0; pointer-events:none; overflow:hidden; z-index:0;}
+#bg-hearts span{
+  position:absolute; bottom:-40px; font-size:22px; opacity:.16;
+  animation:floatUp linear infinite;
+}
+@keyframes floatUp{
+  0%{transform:translateY(0) rotate(0deg);}
+  100%{transform:translateY(-110vh) rotate(40deg);}
+}
+#app{position:relative; z-index:1; height:100%; max-width:480px; margin:0 auto; display:flex; flex-direction:column;}
+#topbar{
+  display:flex; align-items:center; gap:10px; padding:12px 14px 8px;
+  flex:0 0 auto;
+}
+#backBtn{
+  border:none; background:var(--card); color:var(--accent-deep);
+  width:40px; height:40px; border-radius:14px; font-size:20px; font-weight:700;
+  box-shadow:var(--shadow); cursor:pointer; display:none;
+}
+#screenTitle{font-size:18px; font-weight:700; flex:1;}
+#heartCounter{
+  background:var(--card); border-radius:999px; padding:8px 14px;
+  font-weight:800; color:var(--accent-deep); box-shadow:var(--shadow);
+  font-size:15px; white-space:nowrap;
+}
+#heartCounter.pop{animation:hpop .4s ease;}
+@keyframes hpop{50%{transform:scale(1.25);}}
+main{flex:1; overflow-y:auto; overscroll-behavior:contain; padding:6px 14px 24px; -webkit-overflow-scrolling:touch;}
+.screen{display:none;}
+.screen.active{display:block; animation:screenIn .32s ease;}
+@keyframes screenIn{0%{opacity:0; transform:translateY(16px);} 100%{opacity:1; transform:none;}}
+
+/* ---------- MENU ---------- */
+#menuHead{text-align:center; padding:10px 0 18px;}
+#menuHead h1{
+  margin:0; font-size:36px; letter-spacing:.5px;
+  background:linear-gradient(120deg,#ff5c8a,#d23369,#ff7ba4);
+  -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent;
+}
+#menuHead h1 #bigHeart{-webkit-text-fill-color:initial;}
+#menuSub{
+  font-size:15px; color:var(--accent-deep); font-style:italic; margin-top:2px;
+  letter-spacing:.4px;
+}
+#bigHeart{display:inline-block; animation:beat 1.4s ease infinite; cursor:pointer; user-select:none;}
+@keyframes beat{0%,100%{transform:scale(1);} 12%{transform:scale(1.18);} 24%{transform:scale(1);} 36%{transform:scale(1.12);} 48%{transform:scale(1);}}
+#menuHead p{margin:8px 6px 0; color:var(--muted); font-size:14.5px; line-height:1.45;}
+.menu-card{
+  display:flex; align-items:center; gap:14px; background:var(--card);
+  border-radius:var(--radius); box-shadow:var(--shadow); padding:14px 16px;
+  margin-bottom:12px; cursor:pointer; border:2px solid transparent;
+  transition:transform .12s ease;
+}
+.menu-card:active{transform:scale(.97);}
+.menu-card .ico{font-size:32px; flex:0 0 auto;}
+.menu-card .tt{font-size:17px; font-weight:700;}
+.menu-card .ss{font-size:13px; color:var(--muted); margin-top:2px;}
+.menu-card .badge{
+  margin-left:auto; background:var(--accent); color:#fff; border-radius:999px;
+  font-size:12px; font-weight:800; padding:5px 10px; flex:0 0 auto;
+}
+#offlineHint{text-align:center; color:var(--muted); font-size:12.5px; margin-top:16px;}
+
+/* ---------- generic game bits ---------- */
+.gwrap{position:relative;}
+.gstats{display:flex; gap:10px; margin-bottom:12px;}
+.stat{
+  flex:1; background:var(--card); border-radius:16px; box-shadow:var(--shadow);
+  padding:8px 12px; text-align:center;
+}
+.stat .lbl{font-size:11px; color:var(--muted); text-transform:uppercase; letter-spacing:.6px;}
+.stat .val{font-size:19px; font-weight:800; color:var(--accent-deep);}
+.btn{
+  border:none; background:var(--accent); color:#fff; font-weight:700; font-size:15px;
+  padding:12px 20px; border-radius:14px; cursor:pointer; box-shadow:var(--shadow);
+  transition:transform .12s ease; font-family:inherit;
+}
+.btn:active{transform:scale(.95);}
+.btn.ghost{background:var(--card); color:var(--accent-deep);}
+.btnrow{display:flex; gap:10px; justify-content:center; margin-top:14px; flex-wrap:wrap;}
+
+/* ---------- 2048 ---------- */
+#board2048{
+  display:grid; grid-template-columns:repeat(4,1fr); gap:9px;
+  background:#ffd1e0; border-radius:18px; padding:9px;
+  aspect-ratio:1/1; touch-action:none; user-select:none;
+}
+#board2048 .cell{
+  background:#ffe6ef; border-radius:12px; display:flex; align-items:center; justify-content:center;
+  font-weight:800; font-size:26px; color:#fff;
+}
+#board2048 .cell.popin{animation:tilepop .18s ease;}
+@keyframes tilepop{0%{transform:scale(.4);} 100%{transform:scale(1);}}
+.t2{background:#ffb7cd; font-size:28px;} .t4{background:#ff9ebd; font-size:28px;}
+.t8{background:#ff85ac; font-size:28px;} .t16{background:#ff6d9b; font-size:26px;}
+.t32{background:#ff558b; font-size:26px;} .t64{background:#f2417c; font-size:26px;}
+.t128{background:#e0306e; font-size:23px;} .t256{background:#c92563; font-size:23px;}
+.t512{background:#b01e58; font-size:23px;} .t1024{background:#971a4e; font-size:19px;}
+.t2048{background:#7d1543; font-size:19px; box-shadow:0 0 14px #ff5c8a;}
+.tbig{background:#5e0f33; font-size:17px; box-shadow:0 0 14px #ff5c8a;}
+
+/* ---------- memory ---------- */
+#memBoard{display:grid; gap:9px; user-select:none;}
+.mcard{aspect-ratio:1/1; perspective:600px; cursor:pointer;}
+.mcard .inner{
+  position:relative; width:100%; height:100%;
+  transform-style:preserve-3d; transition:transform .35s ease;
+}
+.mcard.flipped .inner{transform:rotateY(180deg);}
+.mcard .face{
+  position:absolute; inset:0; border-radius:14px; backface-visibility:hidden;
+  display:flex; align-items:center; justify-content:center; font-size:30px;
+}
+.mcard .front{background:linear-gradient(145deg,#ff7ba4,#ff5c8a); color:#fff;}
+.mcard .back{background:#fff; transform:rotateY(180deg); box-shadow:inset 0 0 0 2px #ffd1e0;}
+.mcard.matched .back{background:#ffeef4; box-shadow:inset 0 0 0 2px var(--accent);}
+.mlevels{display:flex; gap:8px; margin-bottom:12px;}
+.mlevels .btn{flex:1; padding:10px 6px; font-size:13.5px;}
+.mlevels .btn.off{background:var(--card); color:var(--muted); box-shadow:none; border:1.5px solid #ffd1e0;}
+
+/* ---------- snake ---------- */
+#snakeCanvas{
+  width:100%; aspect-ratio:1/1; border-radius:18px; background:#fff0f5;
+  box-shadow:var(--shadow); touch-action:none; display:block;
+}
+#dpad{display:grid; grid-template-columns:repeat(3,64px); justify-content:center; gap:7px; margin-top:14px;}
+#dpad button{
+  height:52px; border:none; border-radius:14px; background:var(--card);
+  color:var(--accent-deep); font-size:21px; box-shadow:var(--shadow); cursor:pointer;
+}
+#dpad button:active{background:#ffe0ec;}
+#dpad .empty{visibility:hidden;}
+
+/* ---------- wordle ---------- */
+#wgrid{display:grid; grid-template-rows:repeat(6,1fr); gap:6px; max-width:330px; margin:0 auto 14px;}
+.wrow{display:grid; grid-template-columns:repeat(5,1fr); gap:6px;}
+.wtile{
+  aspect-ratio:1/1; border-radius:10px; background:var(--card);
+  border:2px solid #ffd1e0; display:flex; align-items:center; justify-content:center;
+  font-size:24px; font-weight:800; text-transform:uppercase;
+}
+.wtile.fill{border-color:var(--accent);}
+.wtile.hit{background:#56c271; border-color:#56c271; color:#fff;}
+.wtile.near{background:#f5b942; border-color:#f5b942; color:#fff;}
+.wtile.miss{background:#c9aeb9; border-color:#c9aeb9; color:#fff;}
+.wtile.reveal{animation:wflip .35s ease;}
+@keyframes wflip{0%{transform:rotateX(0);} 50%{transform:rotateX(90deg);} 100%{transform:rotateX(0);}}
+#wkb{user-select:none; max-width:480px; margin:0 auto;}
+.kbrow{display:flex; gap:4px; justify-content:center; margin-bottom:6px;}
+.kbrow button{
+  flex:1; max-width:42px; height:46px; border:none; border-radius:8px;
+  background:var(--card); color:var(--text); font-size:15px; font-weight:700;
+  box-shadow:0 2px 6px rgba(210,51,105,.12); cursor:pointer; padding:0;
+  font-family:inherit;
+}
+.kbrow button.wide{max-width:64px; font-size:13px; color:var(--accent-deep);}
+.kbrow button.hit{background:#56c271; color:#fff;}
+.kbrow button.near{background:#f5b942; color:#fff;}
+.kbrow button.miss{background:#c9aeb9; color:#fff;}
+
+/* ---------- fortune ---------- */
+#fortuneWrap{text-align:center; padding-top:20px;}
+#cookie{font-size:90px; cursor:pointer; display:inline-block; transition:transform .15s ease; user-select:none;}
+#cookie:active{transform:scale(.9) rotate(-8deg);}
+#fortuneCard{
+  background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow);
+  padding:22px 20px; margin:20px 4px 0; font-size:17px; line-height:1.5;
+  min-height:84px; display:flex; align-items:center; justify-content:center;
+  animation:tilepop .25s ease;
+}
+
+/* ---------- letters ---------- */
+.letter{
+  display:flex; align-items:center; gap:13px; background:var(--card);
+  border-radius:var(--radius); box-shadow:var(--shadow); padding:14px 16px;
+  margin-bottom:11px; cursor:pointer;
+}
+.letter.locked{opacity:.55; cursor:default;}
+.letter .ico{font-size:28px;}
+.letter .tt{font-weight:700; font-size:15.5px;}
+.letter .ss{font-size:12.5px; color:var(--muted); margin-top:2px;}
+.letter .new{
+  margin-left:auto; background:var(--accent); color:#fff; font-size:11px;
+  font-weight:800; border-radius:999px; padding:4px 9px;
+}
+#lettersHint{
+  text-align:center; color:var(--muted); font-size:13px; margin:4px 0 14px; line-height:1.45;
+}
+
+/* ---------- catcher (ловец сердечек) ---------- */
+#loveArena{
+  position:relative; height:60vh; min-height:340px; overflow:hidden;
+  border-radius:18px; background:linear-gradient(180deg,#fff0f5,#ffe0ec);
+  box-shadow:var(--shadow); touch-action:none; user-select:none;
+}
+.fallH{
+  position:absolute; top:0; left:0; will-change:transform; cursor:pointer;
+  user-select:none; line-height:1; filter:drop-shadow(0 3px 5px rgba(210,51,105,.25));
+}
+.fallH.burst{animation:burstpop .32s ease forwards;}
+@keyframes burstpop{45%{transform:scale(1.7) rotate(12deg); opacity:1;} 100%{transform:scale(.1) rotate(28deg); opacity:0;}}
+#arenaOverlay{
+  position:absolute; inset:0; display:flex; flex-direction:column; gap:12px;
+  align-items:center; justify-content:center; background:rgba(255,240,245,.75);
+  backdrop-filter:blur(2px); z-index:5; text-align:center; padding:18px;
+}
+#arenaOverlay p{margin:0; color:var(--muted); font-size:14.5px; line-height:1.5;}
+.floatPts{
+  position:absolute; z-index:6; font-weight:800; font-size:18px; pointer-events:none;
+  animation:ptsUp .7s ease-out forwards; color:var(--accent-deep);
+}
+.floatPts.bad{color:#8a6cab;}
+@keyframes ptsUp{0%{opacity:1; transform:translateY(0);} 100%{opacity:0; transform:translateY(-46px);}}
+
+/* ---------- kisses (поцелуйчики) ---------- */
+#kissGrid{display:grid; grid-template-columns:repeat(3,1fr); gap:12px; position:relative;}
+.khole{
+  aspect-ratio:1/1; background:radial-gradient(circle at 50% 38%,#ffe9f1,#ffd4e4);
+  border-radius:50%; display:flex; align-items:center; justify-content:center;
+  font-size:44px; box-shadow:inset 0 5px 12px rgba(210,51,105,.2); cursor:pointer;
+  user-select:none; position:relative;
+}
+.khole span{transform:scale(0); transition:transform .13s ease; pointer-events:none;}
+.khole.up span{transform:scale(1);}
+#kissWrap{position:relative;}
+
+/* ---------- flappy (летящее сердечко) ---------- */
+#flapCanvas{
+  width:100%; aspect-ratio:3/4; border-radius:18px; display:block;
+  background:#fff0f5; box-shadow:var(--shadow); touch-action:none;
+}
+
+/* ---------- block blast ---------- */
+#blastBoard{
+  display:grid; grid-template-columns:repeat(8,1fr); gap:4px;
+  background:#ffd1e0; border-radius:16px; padding:6px; aspect-ratio:1/1;
+  user-select:none; touch-action:manipulation;
+}
+#blastBoard .bcell{
+  background:#ffe6ef; border-radius:7px; transition:background .12s ease, transform .12s ease;
+}
+#blastBoard .bcell.filled{box-shadow:inset 0 -3px 5px rgba(0,0,0,.12);}
+#blastBoard .bcell.preview{background:#ffc0d6 !important; transform:scale(.9);}
+#blastBoard .bcell.bad{background:#e7c4d2 !important;}
+#blastBoard .bcell.clearing{animation:bclear .35s ease forwards;}
+@keyframes bclear{0%{transform:scale(1);} 45%{transform:scale(1.25); filter:brightness(1.5);} 100%{transform:scale(0); opacity:0;}}
+#blastTray{
+  display:grid; grid-template-columns:repeat(3,1fr); gap:10px; margin-top:14px;
+  min-height:90px;
+}
+.tray-piece{
+  background:var(--card); border-radius:16px; box-shadow:var(--shadow);
+  display:flex; align-items:center; justify-content:center; padding:10px;
+  cursor:pointer; min-height:84px; transition:transform .12s ease, box-shadow .12s ease;
+}
+.tray-piece.sel{transform:scale(1.06); box-shadow:0 0 0 3px var(--accent), var(--shadow);}
+.tray-piece.used{opacity:0; pointer-events:none;}
+.tray-piece .pgrid{display:grid; gap:3px;}
+.tray-piece .pg{width:15px; height:15px; border-radius:4px;}
+
+/* ---------- tetris ---------- */
+#tetrisCanvas{
+  display:block; margin:0 auto; border-radius:16px; background:#fff0f5;
+  box-shadow:var(--shadow); touch-action:none; max-height:56vh;
+}
+#tetrisPad{display:grid; grid-template-columns:repeat(4,1fr); gap:8px; margin-top:14px; max-width:320px; margin-left:auto; margin-right:auto;}
+#tetrisPad button{
+  height:54px; border:none; border-radius:14px; background:var(--card);
+  color:var(--accent-deep); font-size:22px; box-shadow:var(--shadow); cursor:pointer;
+}
+#tetrisPad button:active{background:#ffe0ec; transform:scale(.95);}
+
+/* ---------- extra effects ---------- */
+.tapheart{
+  position:fixed; z-index:70; pointer-events:none; font-size:15px;
+  animation:tapfloat .85s ease-out forwards;
+}
+@keyframes tapfloat{
+  0%{transform:translate(-50%,-50%) scale(.5); opacity:.95;}
+  100%{transform:translate(-50%,-150%) translateY(-70px) scale(1.4); opacity:0;}
+}
+.menu-card.glow{animation:glowpulse 2.2s ease-in-out infinite;}
+@keyframes glowpulse{
+  0%,100%{box-shadow:var(--shadow);}
+  50%{box-shadow:0 6px 30px rgba(255,92,138,.55);}
+}
+.twinkle{display:inline-block; animation:tw 1.8s ease-in-out infinite;}
+.twinkle.t2{animation-delay:.6s;}
+@keyframes tw{0%,100%{opacity:.4; transform:scale(.85) rotate(-8deg);} 50%{opacity:1; transform:scale(1.15) rotate(8deg);}}
+
+/* ---------- lock screen ---------- */
+#lockScreen{
+  position:fixed; inset:0; z-index:100; display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(160deg,#fff5f8,#ffd4e4); transition:opacity .5s ease;
+}
+#lockScreen.away{opacity:0; pointer-events:none;}
+#lockCard{text-align:center; padding:30px 24px; max-width:340px; width:100%;}
+#lockCard h2{color:var(--accent-deep); margin:8px 0 4px; font-size:22px;}
+#lockCard .sub{color:var(--muted); font-size:14px; margin:0;}
+.pinDots{display:flex; gap:14px; justify-content:center; margin:18px 0 22px;}
+.pinDots span{
+  width:16px; height:16px; border-radius:50%; border:2px solid var(--accent);
+  background:transparent; transition:all .15s ease;
+}
+.pinDots span.on{background:var(--accent);}
+.pinDots.shake{animation:shake .4s ease;}
+@keyframes shake{0%,100%{transform:translateX(0);} 25%{transform:translateX(-9px);} 50%{transform:translateX(8px);} 75%{transform:translateX(-5px);}}
+.pinPad{display:grid; grid-template-columns:repeat(3,74px); gap:10px; justify-content:center;}
+.pinPad button{
+  height:60px; border:none; border-radius:18px; background:var(--card); font-size:24px;
+  font-weight:700; color:var(--text); box-shadow:var(--shadow); cursor:pointer; font-family:inherit;
+}
+.pinPad button:active{transform:scale(.93); background:#ffe0ec;}
+.pinPad button.ghosty{background:transparent; box-shadow:none; font-size:18px; color:var(--muted);}
+
+/* ---------- vibes (музыкальный вайбик) ---------- */
+#vibesHead{
+  background:linear-gradient(135deg,#ffe9f1,#ffd9e8); border-radius:var(--radius);
+  box-shadow:var(--shadow); padding:16px 18px; margin-bottom:16px; text-align:center;
+  font-size:14.5px; line-height:1.6; color:#8a2b52;
+}
+.vibe{
+  background:var(--card); border-radius:var(--radius); box-shadow:var(--shadow);
+  padding:16px; margin-bottom:14px;
+}
+.vibe .row{display:flex; align-items:center; gap:14px;}
+.vibe.locked{opacity:.55;}
+.vibe .lico{font-size:30px; flex:0 0 auto;}
+.viz{display:none; align-items:flex-end; justify-content:center; gap:3px; height:60px; margin-top:14px;}
+.vibe.playing .viz{display:flex;}
+.viz i{width:7px; border-radius:4px; background:linear-gradient(180deg,#ff7ba4,#d23369); height:6px;}
+.vizHeart{font-size:36px; margin:0 8px; align-self:center; transition:transform .08s linear;}
+
+/* ---------- гуляющий котик ---------- */
+#strollCat{
+  position:fixed; bottom:5px; left:0; z-index:3; font-size:30px;
+  pointer-events:none; display:none; transform:scaleX(-1);
+}
+#strollCat.go{display:block; animation:stroll 16s linear forwards;}
+@keyframes stroll{0%{left:-12vw;} 100%{left:112vw;}}
+
+/* ---------- toast / modal / confetti ---------- */
+#toast{
+  position:fixed; left:50%; bottom:30px; transform:translateX(-50%) translateY(20px);
+  background:var(--accent-deep); color:#fff; padding:11px 20px; border-radius:999px;
+  font-weight:700; font-size:14.5px; opacity:0; pointer-events:none;
+  transition:all .25s ease; z-index:50; white-space:nowrap; max-width:92vw;
+  overflow:hidden; text-overflow:ellipsis;
+}
+#toast.show{opacity:1; transform:translateX(-50%) translateY(0);}
+#modalBack{
+  position:fixed; inset:0; background:rgba(74,16,40,.45); backdrop-filter:blur(3px);
+  display:none; align-items:center; justify-content:center; z-index:40; padding:22px;
+}
+#modalBack.show{display:flex;}
+#modalCard{
+  background:var(--card); border-radius:24px; padding:26px 22px; max-width:380px; width:100%;
+  box-shadow:0 16px 50px rgba(120,10,60,.35); text-align:center;
+  animation:tilepop .22s ease; max-height:80vh; overflow-y:auto;
+}
+#modalCard h3{margin:0 0 10px; color:var(--accent-deep); font-size:20px;}
+#modalCard p{margin:0; font-size:16px; line-height:1.55; white-space:pre-line;}
+#modalBtns{display:flex; gap:10px; justify-content:center; margin-top:18px; flex-wrap:wrap;}
+.cf{
+  position:fixed; top:-30px; z-index:60; pointer-events:none; font-size:22px;
+  animation:cfall linear forwards;
+}
+@keyframes cfall{
+  0%{transform:translateY(0) rotate(0deg); opacity:1;}
+  100%{transform:translateY(105vh) rotate(160deg); opacity:.6;}
+}
+</style>
+</head>
+<body>
+<div id="lockScreen">
+  <div id="lockCard">
+    <div style="font-size:56px">🔐</div>
+    <h2>Секретный код ♥</h2>
+    <p class="sub">Этот сайт — только для одной девочки на свете 🥺</p>
+    <div class="pinDots" id="lockDots"><span></span><span></span><span></span><span></span></div>
+    <div class="pinPad" id="lockPad"></div>
+  </div>
+</div>
+<div id="strollCat">🐈</div>
+<div id="bg-hearts"></div>
+<div id="app">
+  <div id="topbar">
+    <button id="backBtn">←</button>
+    <div id="screenTitle"></div>
+    <div id="heartCounter">♥ 0</div>
+  </div>
+  <main>
+
+    <!-- MENU -->
+    <section class="screen" id="screen-menu">
+      <div id="menuHead">
+        <h1><span class="twinkle">✨</span> Анечка <span id="bigHeart">🥺♥️</span> <span class="twinkle t2">✨</span></h1>
+        <div id="menuSub">юбовь Никиты ♥</div>
+        <p>Никита собрал эти игры специально для тебя,<br>чтобы дорога до Минска пролетела незаметно ♥<br>Играй, собирай сердечки — за них открываются его письма 💌</p>
+      </div>
+      <div class="menu-card" data-go="2048">
+        <div class="ico">💗</div>
+        <div><div class="tt">2048 Сердечки</div><div class="ss">Свайпай и собирай большие плитки</div></div>
+        <div class="badge" id="best2048Badge" style="display:none"></div>
+      </div>
+      <div class="menu-card" data-go="memory">
+        <div class="ico">🐱</div>
+        <div><div class="tt">Найди пару</div><div class="ss">Карточки на память — где спрятались зверюшки?</div></div>
+      </div>
+      <div class="menu-card" data-go="snake">
+        <div class="ico">🐍</div>
+        <div><div class="tt">Змейка</div><div class="ss">Корми змейку сердечками</div></div>
+        <div class="badge" id="bestSnakeBadge" style="display:none"></div>
+      </div>
+      <div class="menu-card" data-go="wordle">
+        <div class="ico">📝</div>
+        <div><div class="tt">Словечко</div><div class="ss">Угадай слово из 5 букв за 6 попыток</div></div>
+      </div>
+      <div class="menu-card" data-go="catcher">
+        <div class="ico">💘</div>
+        <div><div class="tt">Ловец сердечек</div><div class="ss">Лопай сердечки, избегай разбитых!</div></div>
+        <div class="badge" id="bestCatchBadge" style="display:none"></div>
+      </div>
+      <div class="menu-card" data-go="kiss">
+        <div class="ico">😘</div>
+        <div><div class="tt">Поцелуйчики</div><div class="ss">Лови поцелуи — но не буди Никитку!</div></div>
+        <div class="badge" id="bestKissBadge" style="display:none"></div>
+      </div>
+      <div class="menu-card" data-go="flappy">
+        <div class="ico">🕊️</div>
+        <div><div class="tt">Летящее сердечко</div><div class="ss">Тапай и пролетай между колоннами</div></div>
+        <div class="badge" id="bestFlapBadge" style="display:none"></div>
+      </div>
+      <div class="menu-card" data-go="blast">
+        <div class="ico">🧱</div>
+        <div><div class="tt">Блок Бласт</div><div class="ss">Ставь фигурки, собирай линии!</div></div>
+        <div class="badge" id="bestBlastBadge" style="display:none"></div>
+      </div>
+      <div class="menu-card" data-go="tetris">
+        <div class="ico">🎮</div>
+        <div><div class="tt">Тетрис-сердечки</div><div class="ss">Складывай блоки, чисти ряды</div></div>
+        <div class="badge" id="bestTetrisBadge" style="display:none"></div>
+      </div>
+      <div class="menu-card" data-go="vibes">
+        <div class="ico">🎵</div>
+        <div><div class="tt">Музыкальный вайбик</div><div class="ss">Никита поёт для тебя! 🎧 Слушай в наушниках</div></div>
+      </div>
+      <div class="menu-card" data-go="fortune">
+        <div class="ico">🥠</div>
+        <div><div class="tt">Печенька судьбы</div><div class="ss">Что тебя ждёт сегодня?</div></div>
+      </div>
+      <div class="menu-card" data-go="letters">
+        <div class="ico">💌</div>
+        <div><div class="tt">Письма от Никиты</div><div class="ss">Открываются за сердечки</div></div>
+        <div class="badge" id="lettersBadge" style="display:none"></div>
+      </div>
+      <div id="offlineHint">✈️ Работает без интернета · сделано с любовью для Анюты</div>
+    </section>
+
+    <!-- 2048 -->
+    <section class="screen" id="screen-2048">
+      <div class="gstats">
+        <div class="stat"><div class="lbl">Счёт</div><div class="val" id="score2048">0</div></div>
+        <div class="stat"><div class="lbl">Рекорд</div><div class="val" id="best2048">0</div></div>
+      </div>
+      <div id="board2048"></div>
+      <div class="btnrow"><button class="btn ghost" id="new2048">↺ Заново</button></div>
+    </section>
+
+    <!-- MEMORY -->
+    <section class="screen" id="screen-memory">
+      <div class="mlevels">
+        <button class="btn" data-mlevel="0">Легко</button>
+        <button class="btn off" data-mlevel="1">Средне</button>
+        <button class="btn off" data-mlevel="2">Сложно</button>
+      </div>
+      <div class="gstats">
+        <div class="stat"><div class="lbl">Ходы</div><div class="val" id="memMoves">0</div></div>
+        <div class="stat"><div class="lbl">Пары</div><div class="val" id="memPairs">0/6</div></div>
+      </div>
+      <div id="memBoard"></div>
+    </section>
+
+    <!-- SNAKE -->
+    <section class="screen" id="screen-snake">
+      <div class="gstats">
+        <div class="stat"><div class="lbl">Счёт</div><div class="val" id="snakeScore">0</div></div>
+        <div class="stat"><div class="lbl">Рекорд</div><div class="val" id="snakeBest">0</div></div>
+      </div>
+      <canvas id="snakeCanvas"></canvas>
+      <div id="dpad">
+        <span class="empty"></span><button data-dir="up">▲</button><span class="empty"></span>
+        <button data-dir="left">◀</button><button data-dir="down">▼</button><button data-dir="right">▶</button>
+      </div>
+    </section>
+
+    <!-- WORDLE -->
+    <section class="screen" id="screen-wordle">
+      <div id="wgrid"></div>
+      <div id="wkb"></div>
+      <div class="btnrow"><button class="btn ghost" id="newWordle">↺ Новое слово</button></div>
+    </section>
+
+    <!-- CATCHER -->
+    <section class="screen" id="screen-catcher">
+      <div class="gstats">
+        <div class="stat"><div class="lbl">Счёт</div><div class="val" id="catchScore">0</div></div>
+        <div class="stat"><div class="lbl">Время</div><div class="val" id="catchTime">60</div></div>
+        <div class="stat"><div class="lbl">Рекорд</div><div class="val" id="catchBest">0</div></div>
+      </div>
+      <div id="loveArena">
+        <div id="arenaOverlay">
+          <p>Лопай падающие сердечки!<br>💖 = 3 очка · ♥ = 1 очко<br>💔 не трогай — отнимает очки!</p>
+          <button class="btn" id="catchStart">Старт ♥</button>
+        </div>
+      </div>
+    </section>
+
+    <!-- KISS -->
+    <section class="screen" id="screen-kiss">
+      <div class="gstats">
+        <div class="stat"><div class="lbl">Счёт</div><div class="val" id="kissScore">0</div></div>
+        <div class="stat"><div class="lbl">Время</div><div class="val" id="kissTime">45</div></div>
+        <div class="stat"><div class="lbl">Рекорд</div><div class="val" id="kissBest">0</div></div>
+      </div>
+      <div id="kissWrap">
+        <div id="kissGrid"></div>
+      </div>
+      <div class="btnrow"><button class="btn" id="kissStart">Старт 😘</button></div>
+      <p style="text-align:center; color:var(--muted); font-size:13px; margin-top:10px;">
+        😘 = 1 очко · 💋 = 2 очка · 😴 — Никитка спит, не буди его!
+      </p>
+    </section>
+
+    <!-- FLAPPY -->
+    <section class="screen" id="screen-flappy">
+      <div class="gstats">
+        <div class="stat"><div class="lbl">Счёт</div><div class="val" id="flapScore">0</div></div>
+        <div class="stat"><div class="lbl">Рекорд</div><div class="val" id="flapBest">0</div></div>
+      </div>
+      <canvas id="flapCanvas"></canvas>
+    </section>
+
+    <!-- BLOCK BLAST -->
+    <section class="screen" id="screen-blast">
+      <div class="gstats">
+        <div class="stat"><div class="lbl">Счёт</div><div class="val" id="blastScore">0</div></div>
+        <div class="stat"><div class="lbl">Рекорд</div><div class="val" id="blastBest">0</div></div>
+      </div>
+      <div id="blastBoard"></div>
+      <div id="blastTray"></div>
+      <div class="btnrow"><button class="btn ghost" id="blastNew">↺ Заново</button></div>
+      <p style="text-align:center; color:var(--muted); font-size:13px; margin-top:8px;">
+        Нажми фигурку, потом клетку на поле. Собери ряд или столбик — он лопнет! 💥
+      </p>
+    </section>
+
+    <!-- TETRIS -->
+    <section class="screen" id="screen-tetris">
+      <div class="gstats">
+        <div class="stat"><div class="lbl">Счёт</div><div class="val" id="tetrisScore">0</div></div>
+        <div class="stat"><div class="lbl">Ряды</div><div class="val" id="tetrisLines">0</div></div>
+        <div class="stat"><div class="lbl">Рекорд</div><div class="val" id="tetrisBest">0</div></div>
+      </div>
+      <canvas id="tetrisCanvas"></canvas>
+      <div id="tetrisPad">
+        <button data-tact="left">◀</button>
+        <button data-tact="rotate">⟳</button>
+        <button data-tact="right">▶</button>
+        <button data-tact="drop">⤓</button>
+      </div>
+    </section>
+
+    <!-- VIBES -->
+    <section class="screen" id="screen-vibes">
+      <div id="vibesHead">
+        🎧 <b>Анечка, обязательно надень наушники!</b><br>
+        Тут Никита поёт лично для тебя — такое нельзя слушать на динамике,
+        пусть этот вайбик будет только твой 🥺♥️
+      </div>
+      <div id="vibesList"></div>
+    </section>
+
+    <!-- FORTUNE -->
+    <section class="screen" id="screen-fortune">
+      <div id="fortuneWrap">
+        <div id="cookie">🥠</div>
+        <p style="color:var(--muted); font-size:14px; margin:8px 0 0;">Нажми на печеньку ♥</p>
+        <div id="fortuneCard" style="display:none"></div>
+      </div>
+    </section>
+
+    <!-- LETTERS -->
+    <section class="screen" id="screen-letters">
+      <div id="lettersHint"></div>
+      <div id="lettersList"></div>
+    </section>
+
+  </main>
+</div>
+
+<div id="toast"></div>
+<div id="modalBack"><div id="modalCard"></div></div>
+
+<script>
+'use strict';
+/* ============================= CORE ============================= */
+const $ = s => document.querySelector(s);
+const $$ = s => document.querySelectorAll(s);
+const store = {
+  get(k, d){ try{ const v = localStorage.getItem('anechka_'+k); return v===null ? d : JSON.parse(v); }catch(e){ return d; } },
+  set(k, v){ try{ localStorage.setItem('anechka_'+k, JSON.stringify(v)); }catch(e){} }
+};
+const vibe = ms => { try{ navigator.vibrate && navigator.vibrate(ms); }catch(e){} };
+
+/* hearts: кошелёк (тратится на фото) + earned (всего собрано — для писем и вайбиков) */
+let hearts = store.get('hearts', 0);
+let earned = store.get('earned', null);
+if(earned === null){ earned = hearts; store.set('earned', earned); }
+
+function renderHearts(){
+  const el = $('#heartCounter');
+  el.textContent = '♥ ' + hearts;
+  el.classList.remove('pop'); void el.offsetWidth; el.classList.add('pop');
+}
+function addHearts(n, msg){
+  if(n<=0) return;
+  const lettersBefore = LETTERS.filter(l => earned >= l.need).length;
+  const vibesBefore = VIBES.filter(v => earned >= v.need).length;
+  hearts += n;
+  earned += n;
+  store.set('hearts', hearts);
+  store.set('earned', earned);
+  renderHearts();
+  toast((msg ? msg+' ' : '') + '+' + n + ' ♥');
+  vibe(30);
+  if(LETTERS.filter(l => earned >= l.need).length > lettersBefore){
+    setTimeout(()=> toast('💌 Новое письмо от Никиты!'), 1600);
+    confetti(14);
+  }
+  if(VIBES.filter(v => earned >= v.need).length > vibesBefore){
+    setTimeout(()=> toast('🎵 Открылся новый вайбик от Никиты!'), 3000);
+    confetti(14);
+  }
+  updateMenuBadges();
+}
+
+let toastTimer = null;
+function toast(text){
+  const t = $('#toast');
+  t.textContent = text;
+  t.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> t.classList.remove('show'), 2200);
+}
+
+function showModal(title, body, buttons){
+  const card = $('#modalCard');
+  card.innerHTML = '';
+  if(title){ const h = document.createElement('h3'); h.textContent = title; card.appendChild(h); }
+  const p = document.createElement('p'); p.textContent = body; card.appendChild(p);
+  const row = document.createElement('div'); row.id = 'modalBtns';
+  (buttons || [{label:'Хорошо ♥'}]).forEach(b => {
+    const btn = document.createElement('button');
+    btn.className = 'btn' + (b.ghost ? ' ghost' : '');
+    btn.textContent = b.label;
+    btn.onclick = () => { closeModal(); b.action && b.action(); };
+    row.appendChild(btn);
+  });
+  card.appendChild(row);
+  $('#modalBack').classList.add('show');
+}
+function closeModal(){ $('#modalBack').classList.remove('show'); }
+$('#modalBack').addEventListener('click', e => { if(e.target.id === 'modalBack') closeModal(); });
+
+function confetti(n){
+  for(let i=0;i<n;i++){
+    const s = document.createElement('div');
+    s.className = 'cf';
+    s.textContent = ['♥','💗','💖','✨','🌸','🌷','🎀','🐱','🌼'][Math.floor(Math.random()*9)];
+    s.style.left = (Math.random()*96) + 'vw';
+    s.style.animationDuration = (1.6 + Math.random()*1.6) + 's';
+    s.style.fontSize = (15 + Math.random()*16) + 'px';
+    document.body.appendChild(s);
+    setTimeout(()=> s.remove(), 3400);
+  }
+}
+
+/* swipe helper */
+function attachSwipe(el, cb){
+  let sx=0, sy=0, on=false;
+  el.addEventListener('touchstart', e => {
+    on = true; sx = e.touches[0].clientX; sy = e.touches[0].clientY;
+  }, {passive:true});
+  el.addEventListener('touchmove', e => e.preventDefault(), {passive:false});
+  el.addEventListener('touchend', e => {
+    if(!on) return; on = false;
+    const dx = e.changedTouches[0].clientX - sx;
+    const dy = e.changedTouches[0].clientY - sy;
+    if(Math.abs(dx) < 24 && Math.abs(dy) < 24) return;
+    if(Math.abs(dx) > Math.abs(dy)) cb(dx > 0 ? 'right' : 'left');
+    else cb(dy > 0 ? 'down' : 'up');
+  }, {passive:true});
+}
+
+/* ============================= ROUTER ============================= */
+const TITLES = {
+  'menu':'', '2048':'💗 2048 Сердечки', 'memory':'🐱 Найди пару',
+  'snake':'🐍 Змейка', 'wordle':'📝 Словечко', 'fortune':'🥠 Печенька судьбы',
+  'letters':'💌 Письма от Никиты', 'catcher':'💘 Ловец сердечек',
+  'kiss':'😘 Поцелуйчики', 'flappy':'🕊️ Летящее сердечко',
+  'vibes':'🎵 Музыкальный вайбик',
+  'blast':'🧱 Блок Бласт', 'tetris':'🎮 Тетрис-сердечки'
+};
+let currentScreen = 'menu';
+function showScreen(name){
+  if(currentScreen === 'snake' && name !== 'snake') Snake.stop();
+  if(currentScreen === 'catcher' && name !== 'catcher') Catcher.stop();
+  if(currentScreen === 'kiss' && name !== 'kiss') Kiss.stop();
+  if(currentScreen === 'flappy' && name !== 'flappy') Flappy.stop();
+  if(currentScreen === 'vibes' && name !== 'vibes') Vibes.stopAll();
+  if(currentScreen === 'tetris' && name !== 'tetris') Tetris.stop();
+  currentScreen = name;
+  $$('.screen').forEach(s => s.classList.remove('active'));
+  $('#screen-'+name).classList.add('active');
+  $('#screenTitle').textContent = TITLES[name] || '';
+  $('#backBtn').style.display = name === 'menu' ? 'none' : 'block';
+  if(name === 'letters') Letters.render();
+  if(name === 'snake') Snake.enter();
+  if(name === 'flappy') Flappy.enter();
+  if(name === 'vibes') Vibes.render();
+  if(name === 'blast') Blast.enter();
+  if(name === 'tetris') Tetris.enter();
+  $('main').scrollTop = 0;
+}
+$('#backBtn').addEventListener('click', () => showScreen('menu'));
+$$('.menu-card').forEach(c => c.addEventListener('click', () => showScreen(c.dataset.go)));
+
+function updateMenuBadges(){
+  const bests = [['best2048','#best2048Badge'],['bestSnake','#bestSnakeBadge'],
+    ['bestCatch','#bestCatchBadge'],['bestKiss','#bestKissBadge'],['bestFlap','#bestFlapBadge'],
+    ['bestBlast','#bestBlastBadge'],['bestTetris','#bestTetrisBadge']];
+  bests.forEach(([key, sel]) => {
+    const v = store.get(key, 0);
+    if(v > 0){ $(sel).style.display=''; $(sel).textContent = v; }
+  });
+  const read = store.get('lettersRead', []);
+  const unread = LETTERS.filter((l,i) => earned >= l.need && !read.includes(i)).length;
+  const lb = $('#lettersBadge');
+  const lcard = $('[data-go="letters"]');
+  if(unread > 0){
+    lb.style.display=''; lb.textContent = unread + ' нов.';
+    lcard.classList.add('glow');
+  } else { lb.style.display='none'; lcard.classList.remove('glow'); }
+}
+
+/* ============================= LETTERS ============================= */
+const LETTERS = [
+ {need:0, text:'Анечка, юбовь моя, привет 🥺♥️\n\nЭто маленький мир, который я собрал для тебя, чтобы дорога до Минска пролетела незаметно. Играй, собирай сердечки — за них открываются мои письма.\n\nХорошо вам доехать! Я уже скучаю.\nТвой Никита ♥'},
+ {need:15, text:'Знаешь, что самое сложное в этих четырёх часах?\n\nНе то, что тебе ехать. А то, что я не рядом.\n\nДержись там, моя дуйка касатуйка ♥'},
+ {need:30, text:'Если за окном промелькнёт что-то красивое — посмотри на него подольше и запомни.\n\nПотом расскажешь мне, а я буду слушать и смотреть на тебя.\n\n— Никита'},
+ {need:50, text:'Каждое сердечко, которое ты собираешь — это один раз, когда я о тебе подумал.\n\nСудя по твоему счёту, я думаю о тебе постоянно. Так и есть 🥺\n\nМиенький Вайбик, продолжай в том же духе ♥'},
+ {need:70, text:'Анечка, ты — самая красивая пассажирка этого поезда. И самая красивая девушка на всём концерте, заранее говорю.\n\nЭто не обсуждается.\n\nС любовью, твой главный фанат'},
+ {need:95, text:'Сегодня Ваня Дмитриенко поёт для тысяч людей.\n\nА я написал целую игру для одной-единственной. И я считаю, что мне повезло больше ♥\n\nХорошего концерта, юбовь моя! 🎤'},
+ {need:120, text:'Маленькое задание от меня: улыбнись прямо сейчас.\n\n…Вот. В вагоне стало светлее. Я так и знал.\n\n— Никита'},
+ {need:150, text:'Анюта, если вдруг станет скучно даже с игрой — закрой глаза и представь, что я рядом и держу тебя за руку.\n\nЯ, кстати, именно это сейчас и представляю 🥺'},
+ {need:180, text:'Я тут посчитал: 4 часа — это всего 240 минут.\n\nИ часть ты уже проехала! Каждая минута приближает момент, когда я снова тебя увижу 🥺♥️\n\nА на концерте спой за меня погромче 🎶'},
+ {need:210, text:'Ты — моё любимое уведомление на телефоне, мой лучший план на вечер и самая красивая причина улыбаться без повода.\n\nЮбовь моя ненаглядная.\n\n— Никита'},
+ {need:245, text:'Спасибо, что ты есть, Анечка.\n\nПросто спасибо. Без повода.\n\n(Ладно, повод есть: ты самая лучшая дуйка касатуйка на свете.)'},
+ {need:280, text:'Ого, ты собрала СТОЛЬКО сердечек! Тогда финальное письмо:\n\nЛюблю тебя бесконечно и безумно сильно. Ты самая лучшая дуйка касатуйка, юбовь моя ненаглядная ♥\n\nОторвись на концерте, доезжай и сразу напиши мне!\nТвой Никита'}
+];
+
+/* фразы от Никиты после побед */
+const NIKITA_PHRASES = [
+ 'Анечка, юбовь моя, хорошо вам доехать ♥ — Никита',
+ 'Хорошего концерта, моя дуйка касатуйка! 🎤',
+ 'Люблю тебя бесконечно и безумно сильно ♥ — Никита',
+ 'Ты самая лучшая дуйка касатуйка, юбовь моя ненаглядная 🥺',
+ 'Миенький Вайбик, я тобой горжусь! ♥ — Никита',
+ 'Передавай Минску привет от меня! 🏙♥',
+ 'Спой там на концерте за меня погромче 🎶 — Никита',
+ 'Ты моя самая красивая, Анюта ♥',
+ 'Скучаю по тебе каждую минутку 🥺 — Никита',
+ 'Юбовь моя, ты невероятная! ✨',
+ 'Обнимаю тебя через экранчик 🤗♥ — Никита',
+ 'Моя умничка! Я тобой восхищаюсь ✨ — Никита',
+ 'Дуйка касатуйка, ты лучше всех 💗',
+ 'Жду тебя с историями про концерт ♥ — Никита'
+];
+function lovePhrase(){
+  return NIKITA_PHRASES[Math.floor(Math.random()*NIKITA_PHRASES.length)];
+}
+const Letters = {
+  render(){
+    const read = store.get('lettersRead', []);
+    const list = $('#lettersList');
+    list.innerHTML = '';
+    const next = LETTERS.find(l => earned < l.need);
+    $('#lettersHint').textContent = next
+      ? 'Всего собрано ' + earned + ' ♥ · до следующего письма ещё ' + (next.need - earned) + ' ♥'
+      : 'Ты открыла все письма! Никита впечатлён 🥺♥️';
+    LETTERS.forEach((l, i) => {
+      const div = document.createElement('div');
+      const open = earned >= l.need;
+      div.className = 'letter' + (open ? '' : ' locked');
+      div.innerHTML = '<div class="ico">' + (open ? (read.includes(i) ? '💌' : '💖') : '🔒') + '</div>'
+        + '<div><div class="tt">Письмо №' + (i+1) + '</div><div class="ss">'
+        + (open ? (read.includes(i) ? 'Прочитано' : 'Можно открыть!') : 'Нужно ' + l.need + ' ♥')
+        + '</div></div>'
+        + (open && !read.includes(i) ? '<div class="new">НОВОЕ</div>' : '');
+      if(open){
+        div.addEventListener('click', () => {
+          const r = store.get('lettersRead', []);
+          if(!r.includes(i)){ r.push(i); store.set('lettersRead', r); }
+          showModal('Письмо №' + (i+1) + ' 💌', l.text, [{label:'♥', action:()=>{ Letters.render(); updateMenuBadges(); }}]);
+          confetti(8);
+        });
+      }
+      list.appendChild(div);
+    });
+  }
+};
+
+/* ============================= 2048 ============================= */
+const G2048 = (() => {
+  const MILESTONES = {64:3, 128:5, 256:8, 512:12, 1024:20, 2048:40};
+  let grid, score, awarded, over, cells = [];
+
+  function init(){
+    const board = $('#board2048');
+    for(let i=0;i<16;i++){
+      const d = document.createElement('div');
+      d.className = 'cell';
+      board.appendChild(d);
+      cells.push(d);
+    }
+    attachSwipe(board, move);
+    $('#new2048').addEventListener('click', newGame);
+    newGame();
+  }
+  function newGame(){
+    grid = Array(16).fill(0);
+    score = 0; awarded = {}; over = false;
+    addRandom(); addRandom();
+    render(new Set(), new Set());
+  }
+  function addRandom(){
+    const empty = grid.map((v,i)=> v===0 ? i : -1).filter(i => i>=0);
+    if(!empty.length) return -1;
+    const i = empty[Math.floor(Math.random()*empty.length)];
+    grid[i] = Math.random() < 0.9 ? 2 : 4;
+    return i;
+  }
+  function lineOrders(dir){
+    const out = [];
+    for(let k=0;k<4;k++){
+      let idx;
+      if(dir==='left')  idx = [k*4, k*4+1, k*4+2, k*4+3];
+      if(dir==='right') idx = [k*4+3, k*4+2, k*4+1, k*4];
+      if(dir==='up')    idx = [k, k+4, k+8, k+12];
+      if(dir==='down')  idx = [k+12, k+8, k+4, k];
+      out.push(idx);
+    }
+    return out;
+  }
+  function move(dir){
+    if(over) return;
+    let moved = false, gained = 0;
+    const mergedIdx = new Set();
+    for(const order of lineOrders(dir)){
+      const vals = order.map(i => grid[i]).filter(v => v);
+      const res = [];
+      for(let i=0;i<vals.length;i++){
+        if(i+1 < vals.length && vals[i] === vals[i+1]){
+          const nv = vals[i]*2;
+          res.push(nv); gained += nv; i++;
+          if(MILESTONES[nv] && !awarded[nv]){
+            awarded[nv] = true;
+            setTimeout(()=> addHearts(MILESTONES[nv], 'Плитка ' + nv + '!'), 250);
+            if(nv >= 512) confetti(12);
+          }
+        } else res.push(vals[i]);
+      }
+      while(res.length < 4) res.push(0);
+      order.forEach((cellIdx, j) => {
+        if(grid[cellIdx] !== res[j]) moved = true;
+        if(res[j] !== 0 && res[j] !== grid[cellIdx]) mergedIdx.add(cellIdx);
+        grid[cellIdx] = res[j];
+      });
+    }
+    if(!moved) return;
+    score += gained;
+    if(score > store.get('best2048', 0)){ store.set('best2048', score); }
+    const ni = addRandom();
+    const fresh = new Set(); if(ni >= 0) fresh.add(ni);
+    render(mergedIdx, fresh);
+    vibe(10);
+    if(isDead()){
+      over = true;
+      const bonus = Math.min(10, Math.floor(score/400));
+      setTimeout(() => {
+        if(bonus > 0) addHearts(bonus, 'За игру!');
+        showModal('Игра окончена 💗', 'Твой счёт: ' + score + (bonus>0 ? '\nТы заработала бонус!' : '') + '\n\n' + lovePhrase(),
+          [{label:'↺ Ещё раз', action:newGame}, {label:'В меню', ghost:true, action:()=>showScreen('menu')}]);
+      }, 350);
+    }
+  }
+  function isDead(){
+    if(grid.includes(0)) return false;
+    for(let r=0;r<4;r++) for(let c=0;c<4;c++){
+      const v = grid[r*4+c];
+      if(c<3 && grid[r*4+c+1]===v) return false;
+      if(r<3 && grid[(r+1)*4+c]===v) return false;
+    }
+    return true;
+  }
+  function render(merged, fresh){
+    for(let i=0;i<16;i++){
+      const v = grid[i];
+      const d = cells[i];
+      d.textContent = v || '';
+      let cls = 'cell';
+      if(v) cls += v <= 2048 ? ' t'+v : ' tbig';
+      if(merged.has(i) || fresh.has(i)) cls += ' popin';
+      d.className = cls;
+    }
+    $('#score2048').textContent = score;
+    $('#best2048').textContent = store.get('best2048', 0);
+  }
+  return {init, move};
+})();
+
+/* ============================= MEMORY ============================= */
+const Memory = (() => {
+  const EMOJI = ['🐱','🦊','🐰','🐻','🐼','🦄','🐥','🦋','🌸','🍓','🍩','🌈','⭐','🍒','🐬','🧸','🍰','🦩','🐢','🌻'];
+  const LEVELS = [
+    {cols:3, pairs:6, reward:5},
+    {cols:4, pairs:8, reward:8},
+    {cols:4, pairs:10, reward:12}
+  ];
+  let level = 0, open = [], lock = false, found = 0, moves = 0;
+
+  function init(){
+    $$('[data-mlevel]').forEach(b => b.addEventListener('click', () => {
+      level = +b.dataset.mlevel;
+      $$('[data-mlevel]').forEach(x => x.classList.toggle('off', +x.dataset.mlevel !== level));
+      deal();
+    }));
+    deal();
+  }
+  function deal(){
+    const L = LEVELS[level];
+    open = []; lock = false; found = 0; moves = 0;
+    $('#memMoves').textContent = '0';
+    $('#memPairs').textContent = '0/' + L.pairs;
+    const pool = [...EMOJI].sort(() => Math.random()-.5).slice(0, L.pairs);
+    const deck = [...pool, ...pool].sort(() => Math.random()-.5);
+    const board = $('#memBoard');
+    board.style.gridTemplateColumns = 'repeat(' + L.cols + ',1fr)';
+    board.innerHTML = '';
+    deck.forEach(em => {
+      const c = document.createElement('div');
+      c.className = 'mcard';
+      c.innerHTML = '<div class="inner"><div class="face front">♥</div><div class="face back">' + em + '</div></div>';
+      c.dataset.em = em;
+      c.addEventListener('click', () => flip(c));
+      board.appendChild(c);
+    });
+  }
+  function flip(c){
+    if(lock || c.classList.contains('flipped')) return;
+    c.classList.add('flipped');
+    vibe(8);
+    open.push(c);
+    if(open.length < 2) return;
+    moves++;
+    $('#memMoves').textContent = moves;
+    const [a, b] = open;
+    open = [];
+    if(a.dataset.em === b.dataset.em){
+      a.classList.add('matched'); b.classList.add('matched');
+      found++;
+      $('#memPairs').textContent = found + '/' + LEVELS[level].pairs;
+      if(found === LEVELS[level].pairs) win();
+    } else {
+      lock = true;
+      setTimeout(() => { a.classList.remove('flipped'); b.classList.remove('flipped'); lock = false; }, 750);
+    }
+  }
+  function win(){
+    const r = LEVELS[level].reward;
+    confetti(16);
+    setTimeout(() => {
+      addHearts(r, 'Все пары!');
+      const btns = [{label:'↺ Ещё раз', action:deal}];
+      if(level < 2) btns.push({label:'Сложнее →', action:() => {
+        level++;
+        $$('[data-mlevel]').forEach(x => x.classList.toggle('off', +x.dataset.mlevel !== level));
+        deal();
+      }});
+      btns.push({label:'В меню', ghost:true, action:()=>showScreen('menu')});
+      showModal('Умничка! 🐱', 'Ты нашла все пары за ' + moves + ' ходов!\n\n' + lovePhrase(), btns);
+    }, 450);
+  }
+  return {init};
+})();
+
+/* ============================= SNAKE ============================= */
+const Snake = (() => {
+  const N = 15;
+  let cv, ctx, cell, snake, dir, nextDir, food, timer = null, score, dead, started;
+
+  function init(){
+    cv = $('#snakeCanvas');
+    ctx = cv.getContext('2d');
+    attachSwipe(cv, turn);
+    cv.addEventListener('click', () => { if(dead || !started) start(); });
+    $$('#dpad [data-dir]').forEach(b => b.addEventListener('click', () => turn(b.dataset.dir)));
+  }
+  function enter(){
+    sizeCanvas();
+    if(!started || dead) start(); else resume();
+  }
+  function sizeCanvas(){
+    const w = cv.clientWidth || 300;
+    const dpr = window.devicePixelRatio || 1;
+    cv.width = w * dpr; cv.height = w * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+    cell = w / N;
+  }
+  function start(){
+    snake = [{x:7,y:7},{x:6,y:7},{x:5,y:7}];
+    dir = {x:1,y:0}; nextDir = dir;
+    score = 0; dead = false; started = true;
+    placeFood();
+    updateStats();
+    resume();
+  }
+  function resume(){
+    stop();
+    timer = setInterval(tick, Math.max(75, 165 - score*4));
+    draw();
+  }
+  function stop(){ if(timer){ clearInterval(timer); timer = null; } }
+  function placeFood(){
+    do {
+      food = {x:Math.floor(Math.random()*N), y:Math.floor(Math.random()*N)};
+    } while(snake.some(s => s.x===food.x && s.y===food.y));
+  }
+  function turn(d){
+    const map = {up:{x:0,y:-1}, down:{x:0,y:1}, left:{x:-1,y:0}, right:{x:1,y:0}};
+    const nd = map[d];
+    if(!nd) return;
+    if(nd.x === -dir.x && nd.y === -dir.y) return;
+    nextDir = nd;
+  }
+  function tick(){
+    dir = nextDir;
+    const head = {x:(snake[0].x + dir.x + N) % N, y:(snake[0].y + dir.y + N) % N};
+    if(snake.some(s => s.x===head.x && s.y===head.y)){ return die(); }
+    snake.unshift(head);
+    if(head.x===food.x && head.y===food.y){
+      score++;
+      vibe(15);
+      placeFood();
+      updateStats();
+      resume();
+    } else snake.pop();
+    draw();
+  }
+  function die(){
+    dead = true;
+    stop();
+    vibe([60,40,60]);
+    if(score > store.get('bestSnake', 0)) store.set('bestSnake', score);
+    updateStats();
+    const earn = score > 0 ? Math.max(1, Math.floor(score/2)) : 0;
+    setTimeout(() => {
+      if(earn) addHearts(earn, 'Змейка!');
+      showModal('Ой! 🐍', 'Змейка съела ' + score + ' сердечек!\n\n' + lovePhrase(),
+        [{label:'↺ Ещё раз', action:start}, {label:'В меню', ghost:true, action:()=>showScreen('menu')}]);
+    }, 300);
+  }
+  function updateStats(){
+    $('#snakeScore').textContent = score;
+    $('#snakeBest').textContent = store.get('bestSnake', 0);
+  }
+  function draw(){
+    const w = cv.clientWidth;
+    ctx.clearRect(0, 0, w, w);
+    ctx.fillStyle = '#fff0f5';
+    ctx.fillRect(0, 0, w, w);
+    /* food */
+    ctx.fillStyle = '#e0306e';
+    ctx.font = (cell*0.85) + 'px serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('❤', food.x*cell + cell/2, food.y*cell + cell/2 + cell*0.04);
+    /* snake */
+    snake.forEach((s, i) => {
+      const t = i / Math.max(1, snake.length-1);
+      ctx.fillStyle = i === 0 ? '#d23369' : 'rgb(' + Math.round(255-40*t) + ',' + Math.round(92+60*t) + ',' + Math.round(138+40*t) + ')';
+      const pad = cell*0.08;
+      roundRect(s.x*cell+pad, s.y*cell+pad, cell-pad*2, cell-pad*2, cell*0.3);
+    });
+    /* eyes on head */
+    const h = snake[0];
+    ctx.fillStyle = '#fff';
+    const ex = h.x*cell + cell/2, ey = h.y*cell + cell/2;
+    ctx.beginPath();
+    ctx.arc(ex - cell*0.16, ey - cell*0.12, cell*0.08, 0, 7);
+    ctx.arc(ex + cell*0.16, ey - cell*0.12, cell*0.08, 0, 7);
+    ctx.fill();
+  }
+  function roundRect(x, y, w2, h2, r){
+    ctx.beginPath();
+    ctx.moveTo(x+r, y);
+    ctx.arcTo(x+w2, y, x+w2, y+h2, r);
+    ctx.arcTo(x+w2, y+h2, x, y+h2, r);
+    ctx.arcTo(x, y+h2, x, y, r);
+    ctx.arcTo(x, y, x+w2, y, r);
+    ctx.fill();
+  }
+  return {init, enter, stop, turn};
+})();
+
+/* ============================= WORDLE ============================= */
+const Wordle = (() => {
+  const WORDS = 'поезд вагон билет рельс весна осень книга мечта песня чашка кошка зайка мишка астра дождь гроза ветер вьюга мороз тепло город улица домик крыша дверь стена кухня ложка вилка сахар пирог булка халва манго лимон арбуз вишня слива груша банан ягода какао зефир вафля рояль труба танец театр фильм сцена школа парта ручка пенал доска мелок трава берег озеро океан волна песок скала птица сокол сойка цапля чайка судак акула зверь панда коала зебра жираф хомяк мышка белка бобер выдра олень щенок котик семья шапка сумка туфли сапог брошь букет свеча марка почта касса схема карта багаж тропа шоссе замок башня музей сквер аллея лавка вечер закат экран плеер время диван лампа лучик искра пламя огонь дымок уголь полка шутка хохот локон мотив нотка стихи поэма роман глава буква слово фраза ребус фишка кубик кубок спорт каток санки мячик горка весло лодка парус якорь пилот полет крыло магия фокус тайна басня принц лилия капля ручей поток нитка ткань атлас кисть холст эскиз багет опера балет афиша клоун арена печка плита миска перец салат омлет сырок батон ласка'.split(' ');
+  const KB = ['йцукенгшщзхъ', 'фывапролджэ', 'ячсмитьбю'];
+  const REWARDS = [12, 10, 8, 6, 4, 3];
+  let answer = '', row = 0, cur = '', done = false;
+  let tiles = [], keyEls = {};
+
+  function init(){
+    const grid = $('#wgrid');
+    for(let r=0;r<6;r++){
+      const rw = document.createElement('div');
+      rw.className = 'wrow';
+      const line = [];
+      for(let c=0;c<5;c++){
+        const t = document.createElement('div');
+        t.className = 'wtile';
+        rw.appendChild(t);
+        line.push(t);
+      }
+      tiles.push(line);
+      grid.appendChild(rw);
+    }
+    const kb = $('#wkb');
+    KB.forEach((rowStr, ri) => {
+      const rw = document.createElement('div');
+      rw.className = 'kbrow';
+      if(ri === 2){
+        const ok = document.createElement('button');
+        ok.className = 'wide'; ok.textContent = 'ОК';
+        ok.addEventListener('click', submit);
+        rw.appendChild(ok);
+      }
+      [...rowStr].forEach(ch => {
+        const b = document.createElement('button');
+        b.textContent = ch;
+        b.addEventListener('click', () => type(ch));
+        keyEls[ch] = b;
+        rw.appendChild(b);
+      });
+      if(ri === 2){
+        const bs = document.createElement('button');
+        bs.className = 'wide'; bs.textContent = '⌫';
+        bs.addEventListener('click', backspace);
+        rw.appendChild(bs);
+      }
+      kb.appendChild(rw);
+    });
+    $('#newWordle').addEventListener('click', newGame);
+    newGame();
+  }
+  function newGame(){
+    const prev = answer;
+    do { answer = WORDS[Math.floor(Math.random()*WORDS.length)]; } while(answer === prev);
+    row = 0; cur = ''; done = false;
+    tiles.forEach(line => line.forEach(t => { t.textContent=''; t.className='wtile'; }));
+    Object.values(keyEls).forEach(b => b.className = '');
+  }
+  function type(ch){
+    if(done || cur.length >= 5) return;
+    ch = ch === 'ё' ? 'е' : ch;
+    cur += ch;
+    paintCur();
+    vibe(6);
+  }
+  function backspace(){
+    if(done || !cur.length) return;
+    cur = cur.slice(0, -1);
+    paintCur();
+  }
+  function paintCur(){
+    const line = tiles[row];
+    for(let i=0;i<5;i++){
+      line[i].textContent = cur[i] || '';
+      line[i].className = 'wtile' + (cur[i] ? ' fill' : '');
+    }
+  }
+  function submit(){
+    if(done) return;
+    if(cur.length < 5){ toast('Нужно 5 букв ♥'); return; }
+    const guess = cur;
+    const status = Array(5).fill('miss');
+    const pool = {};
+    for(let i=0;i<5;i++){
+      if(guess[i] === answer[i]) status[i] = 'hit';
+      else pool[answer[i]] = (pool[answer[i]] || 0) + 1;
+    }
+    for(let i=0;i<5;i++){
+      if(status[i] === 'hit') continue;
+      if(pool[guess[i]] > 0){ status[i] = 'near'; pool[guess[i]]--; }
+    }
+    const line = tiles[row];
+    for(let i=0;i<5;i++){
+      ((idx) => setTimeout(() => {
+        line[idx].classList.add('reveal');
+        setTimeout(() => line[idx].classList.add(status[idx]), 160);
+        const k = keyEls[guess[idx]];
+        if(k){
+          const rank = {hit:3, near:2, miss:1};
+          const cls = k.classList.contains('hit') ? 'hit' : k.classList.contains('near') ? 'near' : k.classList.contains('miss') ? 'miss' : '';
+          if(!cls || rank[status[idx]] > rank[cls]){
+            k.classList.remove('hit','near','miss');
+            k.classList.add(status[idx]);
+          }
+        }
+      }, idx*120))(i);
+    }
+    setTimeout(() => {
+      if(guess === answer){
+        done = true;
+        confetti(18);
+        const r = REWARDS[row];
+        addHearts(r, 'Угадала!');
+        showModal('Ура! 📝', 'Слово «' + answer.toUpperCase() + '» угадано с ' + (row+1) + '-й попытки!\n\n' + lovePhrase(),
+          [{label:'↺ Ещё слово', action:newGame}, {label:'В меню', ghost:true, action:()=>showScreen('menu')}]);
+      } else if(row === 5){
+        done = true;
+        showModal('Почти! 🙈', 'Это было слово «' + answer.toUpperCase() + '».\nНикита верит — следующее ты точно угадаешь!',
+          [{label:'↺ Ещё слово', action:newGame}, {label:'В меню', ghost:true, action:()=>showScreen('menu')}]);
+      } else {
+        row++; cur = '';
+      }
+    }, 5*120 + 420);
+  }
+  return {init, type, backspace, submit};
+})();
+
+/* ============================= FORTUNE ============================= */
+const Fortune = (() => {
+  const LIST = [
+    'Сегодня тебя ждёт что-то очень вкусное 🍰',
+    'Кто-то прямо сейчас думает о тебе. Спойлер: это Никита 🥺',
+    'Скоро тебя очень крепко обнимут ♥',
+    'Посмотри в окно через минутку — там будет что-то красивое',
+    'Твоя улыбка сегодня спасёт чей-то день ✨',
+    'Дорога пройдёт быстрее, чем ты думаешь 🚂',
+    'Тебя любят сильнее, чем ты можешь представить',
+    'Впереди приятный сюрприз 🎁',
+    'Сегодня идеальный день, чтобы немного помечтать ☁️',
+    'Звёзды говорят: Анечка — самая красивая в этом поезде. Звёзды не врут ⭐',
+    'Скоро будет повод посмеяться до слёз 😄',
+    'Тебе идёт абсолютно всё. Даже это сиденье в вагоне 💁‍♀️',
+    'Хорошие новости уже в пути к тебе 💌',
+    'Кое-кто считает минуты до встречи с тобой ⏳',
+    'Сделай глубокий вдох. Всё будет даже лучше, чем ты планировала',
+    'Вселенная сегодня на твоей стороне ✨',
+    'Не забудь попить водички, принцесса 👑',
+    'Самое уютное место в мире — рядом с тобой. Проверено Никитой 🧸',
+    'Тебя ждёт очень тёплая встреча ♥',
+    'Если сомневаешься — выбирай то, от чего блестят глаза',
+    'Печенька говорит: пора размять плечи и улыбнуться 🍪',
+    'Ты справишься со всем, что задумала. Это факт 💪',
+    'Концерт сегодня будет огонь 🔥 Печенька гарантирует',
+    'Сегодня ты услышишь любимую песню вживую 🎤✨',
+    'Минск тебя полюбит. А как тебя можно не полюбить?',
+    'У дуйки касатуйки сегодня будет лучший день ♥',
+    'Миенький Вайбик уже почти на месте! Чуть-чуть осталось 🚂'
+  ];
+  let last = -1;
+  function init(){
+    $('#cookie').addEventListener('click', () => {
+      let i;
+      do { i = Math.floor(Math.random()*LIST.length); } while(i === last && LIST.length > 1);
+      last = i;
+      const card = $('#fortuneCard');
+      card.style.display = 'flex';
+      card.style.animation = 'none'; void card.offsetWidth; card.style.animation = '';
+      card.textContent = LIST[i];
+      vibe(20);
+      confetti(5);
+    });
+  }
+  return {init};
+})();
+
+/* ============================= CATCHER (ловец сердечек) ============================= */
+const Catcher = (() => {
+  const ROUND = 60;
+  const TYPES = [
+    {e:'♥',  p:.50, speed:1.0, pts:1,  size:34},
+    {e:'💖', p:.18, speed:1.55, pts:3, size:30},
+    {e:'💔', p:.20, speed:1.1, pts:-2, size:32},
+    {e:'😘', p:.12, speed:1.3, pts:2,  size:30}
+  ];
+  let arena, run = false, score, timeLeft, items, raf, spawnTo, timerInt, t0, lastTs;
+
+  function init(){
+    arena = $('#loveArena');
+    $('#catchStart').addEventListener('click', start);
+    $('#catchBest').textContent = store.get('bestCatch', 0);
+  }
+  function pickType(){
+    let r = Math.random(), acc = 0;
+    for(const t of TYPES){ acc += t.p; if(r <= acc) return t; }
+    return TYPES[0];
+  }
+  function start(){
+    stop();
+    items = []; score = 0; timeLeft = ROUND; run = true; t0 = Date.now();
+    arena.querySelectorAll('.fallH,.floatPts').forEach(n => n.remove());
+    $('#arenaOverlay').style.display = 'none';
+    $('#catchScore').textContent = '0';
+    $('#catchTime').textContent = ROUND;
+    timerInt = setInterval(() => {
+      timeLeft--;
+      $('#catchTime').textContent = timeLeft;
+      if(timeLeft <= 0) finish();
+    }, 1000);
+    spawn();
+    lastTs = performance.now();
+    raf = requestAnimationFrame(step);
+  }
+  function spawn(){
+    if(!run) return;
+    const t = pickType();
+    const el = document.createElement('div');
+    el.className = 'fallH';
+    el.textContent = t.e;
+    el.style.fontSize = t.size + 'px';
+    const w = arena.clientWidth;
+    const x = 8 + Math.random() * (w - t.size - 20);
+    const obj = {el, x, y: -40, v: (arena.clientHeight / 3400) * t.speed, pts: t.pts, dead: false};
+    el.style.transform = 'translate(' + x + 'px,-40px)';
+    el.addEventListener('pointerdown', e => {
+      e.stopPropagation();
+      if(obj.dead || !run) return;
+      obj.dead = true;
+      score = Math.max(0, score + obj.pts);
+      $('#catchScore').textContent = score;
+      el.classList.add('burst');
+      floatPts(obj.x + t.size/2, obj.y, obj.pts);
+      vibe(obj.pts > 0 ? 12 : 40);
+      setTimeout(() => el.remove(), 320);
+    });
+    arena.appendChild(el);
+    items.push(obj);
+    const elapsed = (Date.now() - t0) / 1000;
+    spawnTo = setTimeout(spawn, Math.max(260, 680 - elapsed * 7));
+  }
+  function floatPts(x, y, pts){
+    const f = document.createElement('div');
+    f.className = 'floatPts' + (pts < 0 ? ' bad' : '');
+    f.textContent = (pts > 0 ? '+' : '') + pts;
+    f.style.left = x + 'px'; f.style.top = Math.max(10, y) + 'px';
+    arena.appendChild(f);
+    setTimeout(() => f.remove(), 700);
+  }
+  function step(ts){
+    if(!run) return;
+    const dt = Math.min(60, ts - lastTs);
+    lastTs = ts;
+    const h = arena.clientHeight;
+    items = items.filter(o => {
+      if(o.dead) return false;
+      o.y += o.v * dt;
+      if(o.y > h + 10){ o.el.remove(); return false; }
+      o.el.style.transform = 'translate(' + o.x + 'px,' + o.y + 'px)';
+      return true;
+    });
+    raf = requestAnimationFrame(step);
+  }
+  function finish(){
+    stop();
+    if(score > store.get('bestCatch', 0)) store.set('bestCatch', score);
+    $('#catchBest').textContent = store.get('bestCatch', 0);
+    const earn = Math.max(1, Math.floor(score / 5));
+    confetti(14);
+    addHearts(earn, 'Ловец!');
+    showModal('Время вышло! 💘', 'Ты наловила ' + score + ' очков!\n\n' + lovePhrase(),
+      [{label:'↺ Ещё раз', action:start}, {label:'В меню', ghost:true, action:()=>showScreen('menu')}]);
+  }
+  function stop(){
+    run = false;
+    clearTimeout(spawnTo); clearInterval(timerInt); cancelAnimationFrame(raf);
+    if(arena){
+      arena.querySelectorAll('.fallH,.floatPts').forEach(n => n.remove());
+      $('#arenaOverlay').style.display = '';
+    }
+  }
+  return {init, stop};
+})();
+
+/* ============================= KISS (поцелуйчики) ============================= */
+const Kiss = (() => {
+  const ROUND = 45;
+  let holes = [], run = false, score, timeLeft, popTo, timerInt, t0;
+
+  function init(){
+    const grid = $('#kissGrid');
+    for(let i=0;i<9;i++){
+      const h = document.createElement('div');
+      h.className = 'khole';
+      h.innerHTML = '<span></span>';
+      h.addEventListener('pointerdown', () => tap(h));
+      grid.appendChild(h);
+      holes.push(h);
+    }
+    $('#kissStart').addEventListener('click', start);
+    $('#kissBest').textContent = store.get('bestKiss', 0);
+  }
+  function start(){
+    stop();
+    score = 0; timeLeft = ROUND; run = true; t0 = Date.now();
+    $('#kissScore').textContent = '0';
+    $('#kissTime').textContent = ROUND;
+    $('#kissStart').style.display = 'none';
+    timerInt = setInterval(() => {
+      timeLeft--;
+      $('#kissTime').textContent = timeLeft;
+      if(timeLeft <= 0) finish();
+    }, 1000);
+    pop();
+  }
+  function pop(){
+    if(!run) return;
+    const free = holes.filter(h => !h.classList.contains('up'));
+    if(free.length){
+      const h = free[Math.floor(Math.random()*free.length)];
+      const r = Math.random();
+      const kind = r < .62 ? {e:'😘', pts:1} : r < .80 ? {e:'💋', pts:2} : {e:'😴', pts:-2};
+      h.querySelector('span').textContent = kind.e;
+      h.dataset.pts = kind.pts;
+      h.classList.add('up');
+      const elapsed = (Date.now() - t0) / 1000;
+      setTimeout(() => { h.classList.remove('up'); }, Math.max(430, 720 - elapsed * 5));
+    }
+    const elapsed = (Date.now() - t0) / 1000;
+    popTo = setTimeout(pop, Math.max(330, 620 - elapsed * 6));
+  }
+  function tap(h){
+    if(!run || !h.classList.contains('up')) return;
+    const pts = +h.dataset.pts;
+    score = Math.max(0, score + pts);
+    $('#kissScore').textContent = score;
+    h.classList.remove('up');
+    vibe(pts > 0 ? 12 : 45);
+    const f = document.createElement('div');
+    f.className = 'floatPts' + (pts < 0 ? ' bad' : '');
+    f.textContent = pts > 0 ? '+' + pts : 'не буди! ' + pts;
+    f.style.left = (h.offsetLeft + h.clientWidth/2 - 14) + 'px';
+    f.style.top = h.offsetTop + 'px';
+    $('#kissWrap').appendChild(f);
+    setTimeout(() => f.remove(), 700);
+  }
+  function finish(){
+    stop();
+    if(score > store.get('bestKiss', 0)) store.set('bestKiss', score);
+    $('#kissBest').textContent = store.get('bestKiss', 0);
+    const earn = Math.max(1, Math.floor(score / 4));
+    confetti(14);
+    addHearts(earn, 'Поцелуйчики!');
+    showModal('Мua! 😘', 'Ты поймала ' + score + ' очков поцелуйчиков!\n\n' + lovePhrase(),
+      [{label:'↺ Ещё раз', action:start}, {label:'В меню', ghost:true, action:()=>showScreen('menu')}]);
+  }
+  function stop(){
+    run = false;
+    clearTimeout(popTo); clearInterval(timerInt);
+    holes.forEach(h => h.classList.remove('up'));
+    $('#kissStart').style.display = '';
+  }
+  return {init, stop};
+})();
+
+/* ============================= FLAPPY (летящее сердечко) ============================= */
+const Flappy = (() => {
+  let cv, ctx, W, H, bird, pipes, frame, score, run = false, dead = true, raf, lastTs, acc;
+  const STEP = 1000/60;
+
+  function init(){
+    cv = $('#flapCanvas');
+    ctx = cv.getContext('2d');
+    const go = e => { e.preventDefault(); run ? flap() : start(); };
+    cv.addEventListener('pointerdown', go);
+    $('#flapBest').textContent = store.get('bestFlap', 0);
+  }
+  function enter(){
+    sizeCanvas();
+    drawIdle();
+  }
+  function sizeCanvas(){
+    W = cv.clientWidth || 300;
+    H = W * 4/3;
+    const dpr = window.devicePixelRatio || 1;
+    cv.width = W * dpr; cv.height = H * dpr;
+    ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+  }
+  function start(){
+    bird = {x: W*0.28, y: H*0.42, v: 0, r: W*0.045};
+    pipes = []; frame = 0; score = 0; run = true; dead = false;
+    lastTs = performance.now(); acc = 0;
+    $('#flapScore').textContent = '0';
+    raf = requestAnimationFrame(loop);
+  }
+  function flap(){
+    bird.v = -H * 0.0145;
+    vibe(8);
+  }
+  function loop(ts){
+    if(!run) return;
+    raf = requestAnimationFrame(loop);
+    acc += Math.min(100, ts - lastTs);
+    lastTs = ts;
+    while(acc >= STEP){
+      acc -= STEP;
+      if(!physStep()) return;
+    }
+    draw();
+  }
+  function physStep(){
+    frame++;
+    /* physics */
+    bird.v += H * 0.00075;
+    bird.y += bird.v;
+    /* pipes */
+    if(frame % 95 === 1){
+      const gap = H * Math.max(0.30, 0.36 - score*0.004);
+      const top = H*0.1 + Math.random() * (H*0.8 - gap - H*0.1);
+      pipes.push({x: W + 30, w: W*0.16, top, bot: top + gap, passed: false});
+    }
+    const sp = W / 160;
+    pipes.forEach(p => p.x -= sp);
+    pipes = pipes.filter(p => p.x + p.w > -10);
+    /* score + collision */
+    for(const p of pipes){
+      if(!p.passed && p.x + p.w < bird.x - bird.r){
+        p.passed = true; score++;
+        $('#flapScore').textContent = score;
+        vibe(10);
+      }
+      const inX = bird.x + bird.r > p.x && bird.x - bird.r < p.x + p.w;
+      if(inX && (bird.y - bird.r < p.top || bird.y + bird.r > p.bot)){ die(); return false; }
+    }
+    if(bird.y + bird.r > H || bird.y - bird.r < 0){ die(); return false; }
+    return true;
+  }
+  function draw(){
+    ctx.clearRect(0, 0, W, H);
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#fff0f5'); g.addColorStop(1, '#ffe0ec');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+    /* pipes */
+    pipes.forEach(p => {
+      ctx.fillStyle = '#ff9ebd';
+      ctx.strokeStyle = '#e0306e'; ctx.lineWidth = 2;
+      rr(p.x, -8, p.w, p.top + 8, 9);
+      rr(p.x, p.bot, p.w, H - p.bot + 8, 9);
+    });
+    /* bird */
+    ctx.save();
+    ctx.translate(bird.x, bird.y);
+    ctx.rotate(Math.max(-0.4, Math.min(0.6, bird.v / (H*0.012))));
+    ctx.font = (bird.r*2.4) + 'px serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('💗', 0, 0);
+    ctx.restore();
+    /* score */
+    ctx.fillStyle = 'rgba(210,51,105,.25)';
+    ctx.font = '800 ' + (W*0.16) + 'px Segoe UI';
+    ctx.textAlign = 'center';
+    ctx.fillText(score, W/2, H*0.16);
+  }
+  function rr(x, y, w, h, r){
+    ctx.beginPath();
+    ctx.moveTo(x+r, y);
+    ctx.arcTo(x+w, y, x+w, y+h, r);
+    ctx.arcTo(x+w, y+h, x, y+h, r);
+    ctx.arcTo(x, y+h, x, y, r);
+    ctx.arcTo(x, y, x+w, y, r);
+    ctx.fill(); ctx.stroke();
+  }
+  function drawIdle(){
+    ctx.clearRect(0, 0, W, H);
+    const g = ctx.createLinearGradient(0, 0, 0, H);
+    g.addColorStop(0, '#fff0f5'); g.addColorStop(1, '#ffe0ec');
+    ctx.fillStyle = g;
+    ctx.fillRect(0, 0, W, H);
+    ctx.font = (W*0.14) + 'px serif';
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('💗', W/2, H*0.38);
+    ctx.fillStyle = '#d23369';
+    ctx.font = '700 ' + (W*0.05) + 'px Segoe UI';
+    ctx.fillText('Тапай по экрану, чтобы лететь!', W/2, H*0.55);
+    ctx.fillStyle = '#a3778c';
+    ctx.font = (W*0.042) + 'px Segoe UI';
+    ctx.fillText('Нажми, чтобы начать ♥', W/2, H*0.62);
+  }
+  function die(){
+    run = false; dead = true;
+    cancelAnimationFrame(raf);
+    vibe([60,40,60]);
+    if(score > store.get('bestFlap', 0)) store.set('bestFlap', score);
+    $('#flapBest').textContent = store.get('bestFlap', 0);
+    const earn = Math.min(15, score);
+    setTimeout(() => {
+      if(earn > 0) addHearts(earn, 'Полёт!');
+      showModal('Бум! 🕊️', 'Сердечко пролетело ' + score + ' колонн!\n\n' + lovePhrase(),
+        [{label:'↺ Ещё раз', action:start}, {label:'В меню', ghost:true, action:()=>showScreen('menu')}]);
+    }, 250);
+  }
+  function stop(){ run = false; cancelAnimationFrame(raf); }
+  return {init, enter, stop};
+})();
+
+/* ============================= PIN PAD (общий) ============================= */
+function buildPinPad(padEl, dotsEl, onComplete){
+  let cur = '';
+  const layout = ['1','2','3','4','5','6','7','8','9','✕','0','⌫'];
+  layout.forEach(k => {
+    const b = document.createElement('button');
+    b.textContent = k === '✕' ? '' : k;
+    if(k === '✕') b.classList.add('ghosty');
+    b.addEventListener('click', () => {
+      if(k === '✕') return;
+      vibe(8);
+      if(k === '⌫') cur = cur.slice(0, -1);
+      else if(cur.length < 4) cur += k;
+      [...dotsEl.children].forEach((d, i) => d.classList.toggle('on', i < cur.length));
+      if(cur.length === 4){
+        const pin = cur;
+        setTimeout(() => {
+          const ok = onComplete(pin);
+          if(ok === false){
+            dotsEl.classList.add('shake');
+            setTimeout(() => {
+              dotsEl.classList.remove('shake');
+              cur = '';
+              [...dotsEl.children].forEach(d => d.classList.remove('on'));
+            }, 420);
+          } else {
+            cur = '';
+            [...dotsEl.children].forEach(d => d.classList.remove('on'));
+          }
+        }, 150);
+      }
+    });
+    padEl.appendChild(b);
+  });
+}
+
+/* ============================= LOCK SCREEN (вход 6969) ============================= */
+(() => {
+  const HASH = '871245ef10c8dd7f465ed13515cad0da9157300b75d87150b96309e0798916cb';
+  const lock = $('#lockScreen');
+  if(sessionStorage.getItem('anechka_unlocked') === '1'){
+    lock.style.display = 'none';
+    return;
+  }
+  buildPinPad($('#lockPad'), $('#lockDots'), pin => {
+    crypto.subtle.digest('SHA-256', new TextEncoder().encode('anechka:' + pin)).then(buf => {
+      const hex = [...new Uint8Array(buf)].map(x => x.toString(16).padStart(2,'0')).join('');
+      if(hex === HASH){
+        sessionStorage.setItem('anechka_unlocked', '1');
+        confetti(22);
+        vibe([40,60,40]);
+        lock.classList.add('away');
+        setTimeout(() => lock.style.display = 'none', 550);
+      } else {
+        vibe(80);
+        const dots = $('#lockDots');
+        dots.classList.add('shake');
+        toast('Неа 😜 подумай ещё');
+        setTimeout(() => {
+          dots.classList.remove('shake');
+          [...dots.children].forEach(d => d.classList.remove('on'));
+        }, 420);
+      }
+    });
+    return true; /* сброс точек делаем сами после проверки хэша */
+  });
+})();
+
+/* ============================= VIBES (музыкальный вайбик) ============================= */
+const VIBES = [
+  {src:'media/vibe1.m4a', title:'Вайбик №1 · для разогрева 🎤', need:20},
+  {src:'media/vibe2.m4a', title:'Вайбик №2 · большой вайб 🎶', need:60},
+  {src:'media/vibe3.m4a', title:'Вайбик №3 · для самой-самой 💝', need:120}
+];
+const Vibes = (() => {
+  let actx = null, items = [];
+
+  function render(){
+    stopAll();
+    const list = $('#vibesList');
+    list.innerHTML = '';
+    items = [];
+    VIBES.forEach(v => {
+      const d = document.createElement('div');
+      if(earned >= v.need){
+        d.className = 'vibe';
+        d.innerHTML = '<div class="row"><button class="vbtn">▶</button><div><div class="tt">' + v.title
+          + '</div><div class="ss">Никита поёт лично для тебя · твой навсегда ♥</div></div></div>';
+        const viz = document.createElement('div');
+        viz.className = 'viz';
+        const bars = [];
+        for(let i=0;i<8;i++){ const b = document.createElement('i'); viz.appendChild(b); bars.push(b); }
+        const heart = document.createElement('span');
+        heart.className = 'vizHeart';
+        heart.textContent = '💗';
+        viz.appendChild(heart);
+        for(let i=0;i<8;i++){ const b = document.createElement('i'); viz.appendChild(b); bars.push(b); }
+        d.appendChild(viz);
+        const audio = new Audio(v.src);
+        audio.preload = 'auto';
+        const item = {audio, btn:d.querySelector('.vbtn'), card:d, bars, heart, analyser:null, raf:null, data:null};
+        item.btn.addEventListener('click', () => toggle(item));
+        audio.addEventListener('ended', () => stopItem(item));
+        items.push(item);
+      } else {
+        d.className = 'vibe locked';
+        d.innerHTML = '<div class="row"><div class="lico">🔒</div><div><div class="tt">' + v.title
+          + '</div><div class="ss">Собери всего ' + v.need + ' ♥ — и эта песня твоя навсегда</div></div></div>';
+      }
+      list.appendChild(d);
+    });
+  }
+  function toggle(item){
+    if(item.audio.paused){
+      items.forEach(i => { if(i !== item) stopItem(i); });
+      try {
+        if(!actx) actx = new (window.AudioContext || window.webkitAudioContext)();
+        if(actx.state === 'suspended') actx.resume();
+        if(!item.analyser){
+          const srcNode = actx.createMediaElementSource(item.audio);
+          item.analyser = actx.createAnalyser();
+          item.analyser.fftSize = 64;
+          srcNode.connect(item.analyser);
+          item.analyser.connect(actx.destination);
+          item.data = new Uint8Array(item.analyser.frequencyBinCount);
+        }
+      } catch(e){ /* без визуализации тоже споём */ }
+      item.audio.play();
+      item.btn.textContent = '⏸';
+      item.btn.classList.add('playing');
+      item.card.classList.add('playing');
+      vizLoop(item);
+    } else {
+      stopItem(item, true);
+    }
+  }
+  function vizLoop(item){
+    if(item.audio.paused) return;
+    item.raf = requestAnimationFrame(() => vizLoop(item));
+    if(!item.analyser) return;
+    item.analyser.getByteFrequencyData(item.data);
+    let sum = 0;
+    for(let i = 2; i < 18; i++){
+      const val = item.data[i] || 0;
+      sum += val;
+      if(item.bars[i-2]) item.bars[i-2].style.height = (6 + val/255*52) + 'px';
+    }
+    const avg = sum / 16 / 255;
+    item.heart.style.transform = 'scale(' + (1 + avg*0.8) + ')';
+  }
+  function stopItem(item, pauseOnly){
+    cancelAnimationFrame(item.raf);
+    if(!item.audio.paused) item.audio.pause();
+    if(!pauseOnly) item.audio.currentTime = 0;
+    item.btn.textContent = '▶';
+    item.btn.classList.remove('playing');
+    item.card.classList.remove('playing');
+    item.heart.style.transform = '';
+    item.bars.forEach(b => b.style.height = '');
+  }
+  function stopAll(){ items.forEach(i => stopItem(i)); }
+  return {render, stopAll};
+})();
+
+/* ============================= TAP HEARTS (эффект касаний) ============================= */
+(() => {
+  let lastTap = 0;
+  document.addEventListener('pointerdown', e => {
+    const now = Date.now();
+    if(now - lastTap < 130) return;
+    lastTap = now;
+    const s = document.createElement('div');
+    s.className = 'tapheart';
+    s.textContent = ['♥','💗','✨','🌸','🐾'][Math.floor(Math.random()*5)];
+    s.style.left = e.clientX + 'px';
+    s.style.top = e.clientY + 'px';
+    document.body.appendChild(s);
+    setTimeout(() => s.remove(), 900);
+  }, {passive:true});
+})();
+
+/* ============================= EASTER EGG ============================= */
+(() => {
+  let taps = 0;
+  $('#bigHeart').addEventListener('click', () => {
+    taps++;
+    vibe(10);
+    if(taps === 7 && !store.get('eggDone', false)){
+      store.set('eggDone', true);
+      confetti(25);
+      addHearts(7, 'Секретик!');
+      showModal('Ты нашла секретик! 🥺', 'Никита обожает тебя бесконечно.\n\nДа-да, именно тебя, Анечка ♥');
+    } else if(taps === 7){
+      confetti(15);
+      showModal('💗', 'Этот секретик ты уже находила… но Никита всё ещё обожает тебя бесконечно ♥');
+      taps = 0;
+    }
+  });
+})();
+
+/* ============================= KEYBOARD (desktop) ============================= */
+document.addEventListener('keydown', e => {
+  const arrows = {ArrowUp:'up', ArrowDown:'down', ArrowLeft:'left', ArrowRight:'right'};
+  if(currentScreen === '2048' && arrows[e.key]){ e.preventDefault(); G2048.move(arrows[e.key]); }
+  if(currentScreen === 'snake' && arrows[e.key]){ e.preventDefault(); Snake.turn(arrows[e.key]); }
+  if(currentScreen === 'tetris' && arrows[e.key]){
+    e.preventDefault();
+    const map = {left:'left', right:'right', up:'rotate', down:'drop'};
+    Tetris.act ? Tetris.act(map[arrows[e.key]]) : 0;
+  }
+  if(currentScreen === 'wordle'){
+    if(e.key === 'Enter') Wordle.submit();
+    else if(e.key === 'Backspace') Wordle.backspace();
+    else if(/^[а-яё]$/i.test(e.key)) Wordle.type(e.key.toLowerCase());
+  }
+});
+
+/* ============================= BG HEARTS ============================= */
+(() => {
+  const wrap = $('#bg-hearts');
+  const mix = ['♥','💗','🌸','🐱','🌷','🦋','🎀','🌼','♥'];
+  for(let i=0;i<18;i++){
+    const s = document.createElement('span');
+    s.textContent = mix[i % mix.length];
+    s.style.left = (Math.random()*100) + 'vw';
+    s.style.animationDuration = (9 + Math.random()*14) + 's';
+    s.style.animationDelay = (-Math.random()*16) + 's';
+    s.style.fontSize = (13 + Math.random()*16) + 'px';
+    wrap.appendChild(s);
+  }
+  /* котик гуляет по экрану время от времени */
+  const cat = $('#strollCat');
+  const stroll = () => {
+    cat.textContent = ['🐈','🐈‍⬛','🐇'][Math.floor(Math.random()*3)];
+    cat.classList.remove('go'); void cat.offsetWidth; cat.classList.add('go');
+  };
+  setTimeout(stroll, 9000);
+  setInterval(stroll, 47000);
+})();
+
+/* ============================= BLOCK BLAST ============================= */
+const Blast = (() => {
+  const N = 8;
+  /* фигуры: массив [r,c] клеток, нормализованы от 0 */
+  const SHAPES = [
+    [[0,0]],
+    [[0,0],[0,1]],
+    [[0,0],[1,0]],
+    [[0,0],[0,1],[0,2]],
+    [[0,0],[1,0],[2,0]],
+    [[0,0],[0,1],[0,2],[0,3]],
+    [[0,0],[1,0],[2,0],[3,0]],
+    [[0,0],[0,1],[1,0],[1,1]],
+    [[0,0],[0,1],[1,0]],
+    [[0,0],[0,1],[1,1]],
+    [[0,1],[1,0],[1,1]],
+    [[0,0],[1,0],[1,1]],
+    [[0,0],[0,1],[0,2],[1,0]],
+    [[0,0],[0,1],[0,2],[1,2]],
+    [[0,0],[1,0],[1,1],[1,2]],
+    [[0,2],[1,0],[1,1],[1,2]],
+    [[0,0],[0,1],[1,1],[1,2]],
+    [[0,1],[0,2],[1,0],[1,1]]
+  ];
+  const COLORS = ['#ff7ba4','#ff5c8a','#f2417c','#e0306e','#ff9ebd','#d6488f','#ff6d9b'];
+  let grid, cells = [], score, pieces, selected, boardEl, trayEl;
+
+  function init(){
+    boardEl = $('#blastBoard');
+    trayEl = $('#blastTray');
+    for(let i=0;i<N*N;i++){
+      const d = document.createElement('div');
+      d.className = 'bcell';
+      d.dataset.idx = i;
+      d.addEventListener('click', () => place(i));
+      d.addEventListener('pointerenter', () => hover(i));
+      boardEl.appendChild(d);
+      cells.push(d);
+    }
+    boardEl.addEventListener('pointerleave', clearPreview);
+    $('#blastNew').addEventListener('click', newGame);
+    $('#blastBest').textContent = store.get('bestBlast', 0);
+  }
+  function enter(){ if(!grid) newGame(); }
+  function newGame(){
+    grid = Array(N*N).fill(null);
+    score = 0; selected = -1;
+    $('#blastScore').textContent = '0';
+    deal();
+    render();
+  }
+  function deal(){
+    pieces = [0,1,2].map(() => {
+      const shape = SHAPES[Math.floor(Math.random()*SHAPES.length)];
+      return {shape, color: COLORS[Math.floor(Math.random()*COLORS.length)], used:false};
+    });
+    selected = -1;
+    renderTray();
+  }
+  function renderTray(){
+    trayEl.innerHTML = '';
+    pieces.forEach((p, i) => {
+      const wrap = document.createElement('div');
+      wrap.className = 'tray-piece' + (p.used ? ' used' : '') + (selected === i ? ' sel' : '');
+      const maxR = Math.max(...p.shape.map(c => c[0])) + 1;
+      const maxC = Math.max(...p.shape.map(c => c[1])) + 1;
+      const g = document.createElement('div');
+      g.className = 'pgrid';
+      g.style.gridTemplateColumns = 'repeat(' + maxC + ',15px)';
+      g.style.gridTemplateRows = 'repeat(' + maxR + ',15px)';
+      const set = new Set(p.shape.map(c => c[0]+'_'+c[1]));
+      for(let r=0;r<maxR;r++) for(let c=0;c<maxC;c++){
+        const cell = document.createElement('div');
+        if(set.has(r+'_'+c)){ cell.className = 'pg'; cell.style.background = p.color; }
+        g.appendChild(cell);
+      }
+      wrap.appendChild(g);
+      if(!p.used) wrap.addEventListener('click', () => { selected = i; renderTray(); });
+      trayEl.appendChild(wrap);
+    });
+  }
+  function canPlaceAt(shape, idx){
+    const br = Math.floor(idx/N), bc = idx%N;
+    return shape.every(([r,c]) => {
+      const rr = br+r, cc = bc+c;
+      return rr<N && cc<N && grid[rr*N+cc] === null;
+    });
+  }
+  function hover(idx){
+    clearPreview();
+    if(selected < 0 || pieces[selected].used) return;
+    const shape = pieces[selected].shape;
+    const ok = canPlaceAt(shape, idx);
+    const br = Math.floor(idx/N), bc = idx%N;
+    shape.forEach(([r,c]) => {
+      const rr = br+r, cc = bc+c;
+      if(rr<N && cc<N) cells[rr*N+cc].classList.add(ok ? 'preview' : 'bad');
+    });
+  }
+  function clearPreview(){
+    cells.forEach(c => c.classList.remove('preview','bad'));
+  }
+  function place(idx){
+    if(selected < 0 || pieces[selected].used) { toast('Сначала выбери фигурку ♥'); return; }
+    const p = pieces[selected];
+    if(!canPlaceAt(p.shape, idx)){ toast('Сюда не влезает 🙈'); return; }
+    const br = Math.floor(idx/N), bc = idx%N;
+    p.shape.forEach(([r,c]) => { grid[(br+r)*N+(bc+c)] = p.color; });
+    p.used = true;
+    score += p.shape.length;
+    vibe(10);
+    clearPreview();
+    render();
+    clearLines();
+    if(pieces.every(x => x.used)) deal();
+    renderTray();
+    $('#blastScore').textContent = score;
+    if(score > store.get('bestBlast', 0)){ store.set('bestBlast', score); }
+    $('#blastBest').textContent = store.get('bestBlast', 0);
+    checkDead();
+  }
+  function clearLines(){
+    const fullRows = [], fullCols = [];
+    for(let r=0;r<N;r++){ let f=true; for(let c=0;c<N;c++) if(!grid[r*N+c]) f=false; if(f) fullRows.push(r); }
+    for(let c=0;c<N;c++){ let f=true; for(let r=0;r<N;r++) if(!grid[r*N+c]) f=false; if(f) fullCols.push(c); }
+    if(!fullRows.length && !fullCols.length) return;
+    const toClear = new Set();
+    fullRows.forEach(r => { for(let c=0;c<N;c++) toClear.add(r*N+c); });
+    fullCols.forEach(c => { for(let r=0;r<N;r++) toClear.add(r*N+c); });
+    toClear.forEach(i => cells[i].classList.add('clearing'));
+    const gained = (fullRows.length + fullCols.length) * 10 + toClear.size;
+    score += gained;
+    vibe([20,40,20]);
+    confetti(fullRows.length + fullCols.length >= 2 ? 18 : 8);
+    const earnedHearts = (fullRows.length + fullCols.length) * 2;
+    setTimeout(() => addHearts(earnedHearts, 'Линия!'), 200);
+    setTimeout(() => {
+      toClear.forEach(i => { grid[i] = null; });
+      cells.forEach(c => c.classList.remove('clearing'));
+      render();
+      $('#blastScore').textContent = score;
+      if(score > store.get('bestBlast', 0)) store.set('bestBlast', score);
+      $('#blastBest').textContent = store.get('bestBlast', 0);
+    }, 360);
+  }
+  function checkDead(){
+    const anyFit = pieces.some(p => {
+      if(p.used) return false;
+      for(let i=0;i<N*N;i++) if(canPlaceAt(p.shape, i)) return true;
+      return false;
+    });
+    if(!anyFit){
+      const bonus = Math.max(1, Math.floor(score/40));
+      setTimeout(() => {
+        addHearts(bonus, 'За игру!');
+        showModal('Поле забилось! 🧱', 'Твой счёт: ' + score + '\n\n' + lovePhrase(),
+          [{label:'↺ Ещё раз', action:newGame}, {label:'В меню', ghost:true, action:()=>showScreen('menu')}]);
+      }, 450);
+    }
+  }
+  function render(){
+    for(let i=0;i<N*N;i++){
+      const d = cells[i];
+      if(grid[i]){ d.classList.add('filled'); d.style.background = grid[i]; }
+      else { d.classList.remove('filled'); d.style.background = ''; }
+    }
+  }
+  return {init, enter};
+})();
+
+/* ============================= TETRIS ============================= */
+const Tetris = (() => {
+  const COLS = 10, ROWS = 18;
+  const PIECES = {
+    I:{cells:[[0,1],[1,1],[2,1],[3,1]], color:'#ff9ebd', size:4},
+    O:{cells:[[0,0],[0,1],[1,0],[1,1]], color:'#ffb7cd', size:2},
+    T:{cells:[[0,1],[1,0],[1,1],[1,2]], color:'#ff5c8a', size:3},
+    S:{cells:[[0,1],[0,2],[1,0],[1,1]], color:'#f2417c', size:3},
+    Z:{cells:[[0,0],[0,1],[1,1],[1,2]], color:'#e0306e', size:3},
+    J:{cells:[[0,0],[1,0],[1,1],[1,2]], color:'#d6488f', size:3},
+    L:{cells:[[0,2],[1,0],[1,1],[1,2]], color:'#ff6d9b', size:3}
+  };
+  const KEYS = Object.keys(PIECES);
+  let cv, ctx, cell, grid, cur, score, lines, run = false, dropTimer = null, raf;
+
+  function init(){
+    cv = $('#tetrisCanvas');
+    ctx = cv.getContext('2d');
+    $$('#tetrisPad [data-tact]').forEach(b =>
+      b.addEventListener('click', () => act(b.dataset.tact)));
+    attachSwipe(cv, dir => {
+      if(dir==='left') act('left');
+      else if(dir==='right') act('right');
+      else if(dir==='up') act('rotate');
+      else if(dir==='down') act('drop');
+    });
+    cv.addEventListener('click', () => { if(!run) start(); });
+  }
+  function enter(){
+    sizeCanvas();
+    if(!run) start();
+  }
+  function sizeCanvas(){
+    const maxW = Math.min(cv.parentElement.clientWidth, 360);
+    const maxH = window.innerHeight * 0.56;
+    cell = Math.floor(Math.min(maxW / COLS, maxH / ROWS));
+    const dpr = window.devicePixelRatio || 1;
+    cv.width = COLS*cell*dpr; cv.height = ROWS*cell*dpr;
+    cv.style.width = COLS*cell + 'px'; cv.style.height = ROWS*cell + 'px';
+    ctx.setTransform(dpr,0,0,dpr,0,0);
+  }
+  function start(){
+    grid = Array(ROWS*COLS).fill(null);
+    score = 0; lines = 0; run = true;
+    $('#tetrisScore').textContent = '0';
+    $('#tetrisLines').textContent = '0';
+    $('#tetrisBest').textContent = store.get('bestTetris', 0);
+    spawn();
+    schedule();
+    draw();
+  }
+  function schedule(){
+    clearInterval(dropTimer);
+    const speed = Math.max(160, 620 - lines*22);
+    dropTimer = setInterval(() => step(), speed);
+  }
+  function spawn(){
+    const k = KEYS[Math.floor(Math.random()*KEYS.length)];
+    const p = PIECES[k];
+    cur = {cells:p.cells.map(c => [...c]), color:p.color, size:p.size, r:0, c:Math.floor((COLS-p.size)/2)};
+    if(collide(cur.cells, cur.r, cur.c)) gameOver();
+  }
+  function collide(shape, r, c){
+    return shape.some(([dr,dc]) => {
+      const rr = r+dr, cc = c+dc;
+      return cc<0 || cc>=COLS || rr>=ROWS || (rr>=0 && grid[rr*COLS+cc]);
+    });
+  }
+  function rotated(){
+    /* поворот по часовой в пределах size×size */
+    return cur.cells.map(([r,c]) => [c, cur.size-1-r]);
+  }
+  function act(a){
+    if(!run) return;
+    if(a==='left' && !collide(cur.cells, cur.r, cur.c-1)) cur.c--;
+    else if(a==='right' && !collide(cur.cells, cur.r, cur.c+1)) cur.c++;
+    else if(a==='rotate'){
+      const rc = rotated();
+      if(!collide(rc, cur.r, cur.c)) cur.cells = rc;
+      else if(!collide(rc, cur.r, cur.c-1)) { cur.cells = rc; cur.c--; }
+      else if(!collide(rc, cur.r, cur.c+1)) { cur.cells = rc; cur.c++; }
+    }
+    else if(a==='drop'){
+      while(!collide(cur.cells, cur.r+1, cur.c)) cur.r++;
+      lock();
+      return;
+    }
+    vibe(6);
+    draw();
+  }
+  function step(){
+    if(!run) return;
+    if(!collide(cur.cells, cur.r+1, cur.c)) { cur.r++; draw(); }
+    else lock();
+  }
+  function lock(){
+    cur.cells.forEach(([dr,dc]) => {
+      const rr = cur.r+dr, cc = cur.c+dc;
+      if(rr>=0) grid[rr*COLS+cc] = cur.color;
+    });
+    clearFull();
+    spawn();
+    schedule();
+    draw();
+  }
+  function clearFull(){
+    let cleared = 0;
+    for(let r=ROWS-1;r>=0;r--){
+      let full = true;
+      for(let c=0;c<COLS;c++) if(!grid[r*COLS+c]){ full=false; break; }
+      if(full){
+        cleared++;
+        for(let rr=r;rr>0;rr--) for(let c=0;c<COLS;c++) grid[rr*COLS+c] = grid[(rr-1)*COLS+c];
+        for(let c=0;c<COLS;c++) grid[c] = null;
+        r++;
+      }
+    }
+    if(cleared){
+      lines += cleared;
+      score += [0,40,100,300,1200][cleared] || 1200;
+      $('#tetrisScore').textContent = score;
+      $('#tetrisLines').textContent = lines;
+      if(score > store.get('bestTetris', 0)){ store.set('bestTetris', score); $('#tetrisBest').textContent = score; }
+      vibe([20,30,20]);
+      confetti(cleared >= 2 ? 16 : 7);
+      addHearts(cleared * 2, cleared >= 4 ? 'ТЕТРИС!' : 'Ряд!');
+      schedule();
+    }
+  }
+  function draw(){
+    const w = COLS*cell, h = ROWS*cell;
+    ctx.clearRect(0,0,w,h);
+    ctx.fillStyle = '#fff0f5'; ctx.fillRect(0,0,w,h);
+    /* сетка */
+    ctx.strokeStyle = 'rgba(210,51,105,.06)'; ctx.lineWidth = 1;
+    for(let c=1;c<COLS;c++){ ctx.beginPath(); ctx.moveTo(c*cell,0); ctx.lineTo(c*cell,h); ctx.stroke(); }
+    for(let r=1;r<ROWS;r++){ ctx.beginPath(); ctx.moveTo(0,r*cell); ctx.lineTo(w,r*cell); ctx.stroke(); }
+    for(let i=0;i<ROWS*COLS;i++) if(grid[i]) block(i%COLS, Math.floor(i/COLS), grid[i]);
+    if(run && cur) cur.cells.forEach(([dr,dc]) => block(cur.c+dc, cur.r+dr, cur.color));
+  }
+  function block(cx, ry, color){
+    const x = cx*cell, y = ry*cell, pad = Math.max(1, cell*0.06);
+    ctx.fillStyle = color;
+    const r = cell*0.22;
+    rr(x+pad, y+pad, cell-pad*2, cell-pad*2, r);
+    ctx.fillStyle = 'rgba(255,255,255,.35)';
+    rr(x+pad, y+pad, cell-pad*2, (cell-pad*2)*0.4, r);
+  }
+  function rr(x,y,w,h,r){
+    ctx.beginPath();
+    ctx.moveTo(x+r,y);
+    ctx.arcTo(x+w,y,x+w,y+h,r);
+    ctx.arcTo(x+w,y+h,x,y+h,r);
+    ctx.arcTo(x,y+h,x,y,r);
+    ctx.arcTo(x,y,x+w,y,r);
+    ctx.fill();
+  }
+  function gameOver(){
+    run = false;
+    clearInterval(dropTimer);
+    vibe([60,40,60]);
+    const bonus = Math.max(1, Math.floor(score/100));
+    setTimeout(() => {
+      addHearts(bonus, 'За игру!');
+      showModal('Игра окончена 🎮', 'Счёт: ' + score + ' · рядов: ' + lines + '\n\n' + lovePhrase(),
+        [{label:'↺ Ещё раз', action:start}, {label:'В меню', ghost:true, action:()=>showScreen('menu')}]);
+    }, 300);
+  }
+  function stop(){ run = false; clearInterval(dropTimer); cancelAnimationFrame(raf); }
+  return {init, enter, stop, act};
+})();
+
+/* ============================= BOOT ============================= */
+G2048.init();
+Memory.init();
+Snake.init();
+Wordle.init();
+Fortune.init();
+Catcher.init();
+Kiss.init();
+Flappy.init();
+Blast.init();
+Tetris.init();
+renderHearts();
+updateMenuBadges();
+showScreen('menu');
+
+if('serviceWorker' in navigator){
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
