@@ -1991,9 +1991,12 @@ const Blast = (() => {
     render();
   }
   function deal(){
-    pieces = [0,1,2].map(() => ({
+    /* 3 разных цвета на набор — перемешиваем палитру и берём первые три */
+    const idxs = PALETTE.map((_, k) => k);
+    for(let i=idxs.length-1;i>0;i--){ const j = Math.floor(Math.random()*(i+1)); [idxs[i],idxs[j]] = [idxs[j],idxs[i]]; }
+    pieces = [0,1,2].map((_, k) => ({
       shape: SHAPES[Math.floor(Math.random()*SHAPES.length)],
-      colorIdx: Math.floor(Math.random()*PALETTE.length),
+      colorIdx: idxs[k],
       used: false
     }));
     renderTray();
@@ -2020,19 +2023,20 @@ const Blast = (() => {
       trayEl.appendChild(wrap);
     });
   }
-  /* ---- перетаскивание ---- */
+  /* ---- перетаскивание (как в Block Blast: коснулся → ведёт за пальцем → отпустил → встала) ---- */
+  const GAP = 4, PAD = 7;
   function startDrag(e, i, wrap){
     if(drag || pieces[i].used) return;
     e.preventDefault();
     const p = pieces[i];
-    const cs = cells[0].getBoundingClientRect().width, gap = 4;
+    const cs = cells[0].getBoundingClientRect().width;
     const maxR = Math.max(...p.shape.map(c => c[0])) + 1;
     const maxC = Math.max(...p.shape.map(c => c[1])) + 1;
     const ghost = document.createElement('div');
     ghost.className = 'blast-ghost';
     ghost.style.gridTemplateColumns = 'repeat(' + maxC + ',' + cs + 'px)';
     ghost.style.gridAutoRows = cs + 'px';
-    ghost.style.gap = gap + 'px';
+    ghost.style.gap = GAP + 'px';
     const set = new Set(p.shape.map(c => c[0]+'_'+c[1]));
     for(let r=0;r<maxR;r++) for(let c=0;c<maxC;c++){
       const cell = document.createElement('div');
@@ -2042,37 +2046,54 @@ const Blast = (() => {
     }
     document.body.appendChild(ghost);
     wrap.classList.add('dragging');
-    drag = { i, shape:p.shape, ghost, cs, wrap,
-      w: maxC*cs + (maxC-1)*gap, h: maxR*cs + (maxR-1)*gap, ax:0, ay:0 };
+    drag = { i, shape:p.shape, ghost, cs, wrap, cols:maxC, rows:maxR,
+      w: maxC*cs + (maxC-1)*GAP, h: maxR*cs + (maxR-1)*GAP, ax:0, ay:0 };
+    /* захват указателя: все move/up придут на эту же фигурку — палец ведёт без разрывов */
+    try { wrap.setPointerCapture(e.pointerId); } catch(_){}
+    wrap.addEventListener('pointermove', onMove, {passive:false});
+    wrap.addEventListener('pointerup', onUp);
+    wrap.addEventListener('pointercancel', onUp);
     moveGhost(e.clientX, e.clientY);
-    window.addEventListener('pointermove', onMove, {passive:false});
-    window.addEventListener('pointerup', onUp);
-    window.addEventListener('pointercancel', onUp);
-    vibe(6);
+    onMove(e);
+    vibe(8);
   }
   function moveGhost(x, y){
     const left = x - drag.w/2;
-    const top = y - drag.h - 16;     /* фигурка парит над пальцем */
+    const top = y - drag.h - 14;      /* фигурка чуть выше пальца, чтобы её было видно */
     drag.ghost.style.left = left + 'px';
     drag.ghost.style.top = top + 'px';
     drag.ax = left + drag.cs/2;       /* центр верхне-левой клетки фигурки */
     drag.ay = top + drag.cs/2;
   }
+  function computeAnchor(){
+    const br = boardEl.getBoundingClientRect();
+    const pitch = drag.cs + GAP;
+    let col = Math.round((drag.ax - br.left - PAD - drag.cs/2) / pitch);
+    let row = Math.round((drag.ay - br.top  - PAD - drag.cs/2) / pitch);
+    col = Math.max(0, Math.min(N - drag.cols, col));
+    row = Math.max(0, Math.min(N - drag.rows, row));
+    return row*N + col;
+  }
   function onMove(e){
     if(!drag) return;
     e.preventDefault();
     moveGhost(e.clientX, e.clientY);
-    const el = document.elementFromPoint(drag.ax, drag.ay);
-    anchorIdx = (el && el.classList && el.classList.contains('bcell')) ? +el.dataset.idx : -1;
-    if(anchorIdx >= 0) hover(anchorIdx); else clearPreview();
+    const br = boardEl.getBoundingClientRect();
+    const m = drag.cs * 1.2;          /* фигурка считается "над полем", если близко к нему */
+    const over = drag.ax > br.left - m && drag.ax < br.right + m &&
+                 drag.ay > br.top  - m && drag.ay < br.bottom + m;
+    if(over){ anchorIdx = computeAnchor(); hover(anchorIdx); }
+    else { anchorIdx = -1; clearPreview(); }
   }
-  function onUp(){
+  function onUp(e){
     if(!drag) return;
-    window.removeEventListener('pointermove', onMove);
-    window.removeEventListener('pointerup', onUp);
-    window.removeEventListener('pointercancel', onUp);
+    const wrap = drag.wrap;
+    wrap.removeEventListener('pointermove', onMove);
+    wrap.removeEventListener('pointerup', onUp);
+    wrap.removeEventListener('pointercancel', onUp);
+    try { wrap.releasePointerCapture(e.pointerId); } catch(_){}
     drag.ghost.remove();
-    drag.wrap.classList.remove('dragging');
+    wrap.classList.remove('dragging');
     const i = drag.i, idx = anchorIdx;
     drag = null; anchorIdx = -1;
     clearPreview();
